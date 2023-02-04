@@ -3,6 +3,7 @@
   "description": "Node.js client to interact with the Pusher Channels REST API",
   "version": "5.1.2",
   "author": "Pusher <support@pusher.com>",
+  "type": "module",
   "contributors": [
     {
       "name": "fabrik42",
@@ -44,6 +45,7 @@
   },
   "scripts": {
     "local-test": "mocha 'tests/integration/**/*.js'",
+    "local-test:watch": "mocha 'tests/integration/**/*.js' --watch",
     "test": "mocha 'tests/{integration,remote}/**/*.js'",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write ."

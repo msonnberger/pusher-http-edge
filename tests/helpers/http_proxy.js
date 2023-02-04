@@ -1,5 +1,5 @@
-const net = require("net")
-const url = require("url")
+import net from "node:net"
+import url from "node:url"
 
 function handleInit(client) {
   let inBuffer = Buffer.from("")
@@ -141,7 +141,7 @@ function handleConnected(client, server, inBuffer, callback) {
   }
 }
 
-function start(callback) {
+export function start(callback) {
   const proxy = {}
 
   proxy.requests = 0
@@ -154,7 +154,7 @@ function start(callback) {
   return proxy
 }
 
-function stop(proxy, callback) {
+export function stop(proxy, callback) {
   proxy.server.close()
   proxy.server.addListener("close", callback)
 }
@@ -172,6 +172,3 @@ function splitBufferOnce(buffer, searchValue) {
   }
   return [buffer, null]
 }
-
-exports.start = start
-exports.stop = stop

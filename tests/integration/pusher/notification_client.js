@@ -1,6 +1,6 @@
-const expect = require("expect.js")
-const NotificationClient = require("../../../lib/notification_client")
-const nock = require("nock")
+import expect from "expect.js"
+import NotificationClient from "../../../lib/notification_client.js"
+import nock from "nock"
 
 describe("NativeNotificationClient", function () {
   let client

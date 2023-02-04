@@ -1,7 +1,7 @@
-const expect = require("expect.js")
+import expect from "expect.js"
 
-const Pusher = require("../../../lib/pusher")
-const WebHook = require("../../../lib/webhook")
+import Pusher from "../../../lib/pusher.js"
+import WebHook from "../../../lib/webhook.js"
 
 describe("Pusher", function () {
   let pusher

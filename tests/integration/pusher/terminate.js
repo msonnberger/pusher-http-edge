@@ -1,8 +1,8 @@
-const expect = require("expect.js")
-const nock = require("nock")
+import expect from "expect.js"
+import nock from "nock"
 
-const Pusher = require("../../../lib/pusher")
-const sinon = require("sinon")
+import Pusher from "../../../lib/pusher.js"
+import sinon from "sinon"
 
 describe("Pusher", function () {
   let pusher

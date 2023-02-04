@@ -1,8 +1,8 @@
-const expect = require("expect.js")
+import expect from "expect.js"
 
-const errors = require("../../../lib/errors")
-const Pusher = require("../../../lib/pusher")
-const Token = require("../../../lib/token")
+import * as errors from "../../../lib/errors.js"
+import Pusher from "../../../lib/pusher.js"
+import Token from "../../../lib/token.js"
 
 describe("Pusher", function () {
   it("should export `Token`", function () {

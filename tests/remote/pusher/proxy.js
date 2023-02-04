@@ -1,9 +1,9 @@
-const expect = require("expect.js")
+import expect from "expect.js"
 
-const HttpsProxyAgent = require("https-proxy-agent")
+import HttpsProxyAgent from "https-proxy-agent"
 
-const http_proxy = require("../../helpers/http_proxy")
-const Pusher = require("../../../lib/pusher")
+import http_proxy from "../../helpers/http_proxy.js"
+import Pusher from "../../../lib/pusher.js"
 
 describe("Pusher (integration)", function () {
   describe("with configured proxy", function () {

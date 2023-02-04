@@ -1,11 +1,11 @@
-const expect = require("expect.js")
-const nock = require("nock")
-const nacl = require("tweetnacl")
-const naclUtil = require("tweetnacl-util")
-const sinon = require("sinon")
+import expect from "expect.js"
+import nock from "nock"
+import nacl from "tweetnacl"
+import naclUtil from "tweetnacl-util"
+import sinon from "sinon"
 
-const Pusher = require("../../../lib/pusher")
-const events = require("../../../lib/events")
+import Pusher from "../../../lib/pusher.js"
+import * as events from "../../../lib/events.js"
 
 describe("Pusher", function () {
   let pusher
