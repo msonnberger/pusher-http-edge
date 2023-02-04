@@ -1,19 +1,19 @@
-import expect from "expect.js"
+import { expect, describe, test } from "vitest"
 
 import * as errors from "../../../lib/errors.js"
 import Pusher from "../../../lib/pusher.js"
 import Token from "../../../lib/token.js"
 
-describe("Pusher", function () {
-  it("should export `Token`", function () {
-    expect(Pusher.Token).to.be(Token)
+describe("Pusher", () => {
+  test("should export `Token`", () => {
+    expect(Pusher.Token).toBe(Token)
   })
 
-  it("should export `RequestError`", function () {
-    expect(Pusher.RequestError).to.be(errors.RequestError)
+  test("should export `RequestError`", () => {
+    expect(Pusher.RequestError).toBe(errors.RequestError)
   })
 
-  it("should export `WebHookError`", function () {
-    expect(Pusher.WebHookError).to.be(errors.WebHookError)
+  test("should export `WebHookError`", () => {
+    expect(Pusher.WebHookError).toBe(errors.WebHookError)
   })
 })

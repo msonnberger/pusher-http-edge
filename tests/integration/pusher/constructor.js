@@ -1,152 +1,152 @@
-import expect from "expect.js"
+import { describe, test, expect } from "vitest"
 import HttpsProxyAgent from "https-proxy-agent"
 
 import Pusher from "../../../lib/pusher.js"
 
-describe("Pusher", function () {
-  describe("constructor attributes", function () {
-    it("should support `appId`", function () {
+describe("Pusher", () => {
+  describe("constructor attributes", () => {
+    test("should support `appId`", () => {
       const pusher = new Pusher({ appId: 12345 })
-      expect(pusher.config.appId).to.equal(12345)
+      expect(pusher.config.appId).toEqual(12345)
     })
 
-    it("should support `token`", function () {
+    test("should support `token`", () => {
       const pusher = new Pusher({
         key: "1234567890abcdef",
         secret: "fedcba0987654321",
       })
-      expect(pusher.config.token.key).to.equal("1234567890abcdef")
-      expect(pusher.config.token.secret).to.equal("fedcba0987654321")
+      expect(pusher.config.token.key).toEqual("1234567890abcdef")
+      expect(pusher.config.token.secret).toEqual("fedcba0987654321")
     })
 
-    it("should default `useTLS` to false", function () {
+    test("should default `useTLS` to false", () => {
       const pusher = new Pusher({})
-      expect(pusher.config.scheme).to.equal("http")
+      expect(pusher.config.scheme).toEqual("http")
     })
 
-    it("should support `useTLS`", function () {
+    test("should support `useTLS`", () => {
       const pusher = new Pusher({ useTLS: true })
-      expect(pusher.config.scheme).to.equal("https")
+      expect(pusher.config.scheme).toEqual("https")
     })
 
-    it("should support deprecated `encrypted`", function () {
+    test("should support deprecated `encrypted`", () => {
       const pusher = new Pusher({ encrypted: true })
-      expect(pusher.config.scheme).to.equal("https")
+      expect(pusher.config.scheme).toEqual("https")
     })
 
-    it("should throw an exception if `useTLS` and `encrypted` are set", function () {
-      expect(function () {
+    test("should throw an exception if `useTLS` and `encrypted` are set", () => {
+      expect(() => {
         new Pusher({ useTLS: true, encrypted: false })
-      }).to.throwException(
+      }).toThrowError(
         /^Cannot set both `useTLS` and `encrypted` configuration options$/
       )
     })
 
-    it("should default `host` to 'api.pusherapp.com'", function () {
+    test("should default `host` to 'api.pusherapp.com'", () => {
       const pusher = new Pusher({})
-      expect(pusher.config.host).to.equal("api.pusherapp.com")
+      expect(pusher.config.host).toEqual("api.pusherapp.com")
     })
 
-    it("should support `host`", function () {
+    test("should support `host`", () => {
       const pusher = new Pusher({ host: "example.org" })
-      expect(pusher.config.host).to.equal("example.org")
+      expect(pusher.config.host).toEqual("example.org")
     })
 
-    it("should support `cluster`", function () {
+    test("should support `cluster`", () => {
       const pusher = new Pusher({ cluster: "eu" })
-      expect(pusher.config.host).to.equal("api-eu.pusher.com")
+      expect(pusher.config.host).toEqual("api-eu.pusher.com")
     })
 
-    it("should have `host` override `cluster`", function () {
+    test("should have `host` override `cluster`", () => {
       const pusher = new Pusher({
         host: "api.staging.pusher.com",
         cluster: "eu",
       })
-      expect(pusher.config.host).to.equal("api.staging.pusher.com")
+      expect(pusher.config.host).toEqual("api.staging.pusher.com")
     })
 
-    it("should default `port` to undefined", function () {
+    test("should default `port` to undefined", () => {
       const pusher = new Pusher({ useTLS: true })
-      expect(pusher.config.port).to.be(undefined)
+      expect(pusher.config.port).toBe(undefined)
     })
 
-    it("should support `port`", function () {
+    test("should support `port`", () => {
       let pusher = new Pusher({ port: 8080 })
-      expect(pusher.config.port).to.equal(8080)
+      expect(pusher.config.port).toEqual(8080)
 
       pusher = new Pusher({ useTLS: true, port: 8080 })
-      expect(pusher.config.port).to.equal(8080)
+      expect(pusher.config.port).toEqual(8080)
     })
 
-    it("should default `agent` to `undefined`", function () {
+    test("should default `agent` to `undefined`", () => {
       const pusher = new Pusher({})
-      expect(pusher.config.agent).to.be(undefined)
+      expect(pusher.config.agent).toBe(undefined)
     })
 
-    it("should support `agent`", function () {
+    test("should support `agent`", () => {
       const agent = new HttpsProxyAgent("https://test:tset@example.com")
       const pusher = new Pusher({ agent })
-      expect(pusher.config.agent).to.equal(agent)
+      expect(pusher.config.agent).toEqual(agent)
     })
 
-    it("should default `timeout` to `undefined`", function () {
+    test("should default `timeout` to `undefined`", () => {
       const pusher = new Pusher({})
-      expect(pusher.config.timeout).to.be(undefined)
+      expect(pusher.config.timeout).toBe(undefined)
     })
 
-    it("should support `timeout`", function () {
+    test("should support `timeout`", () => {
       const pusher = new Pusher({ timeout: 1001 })
-      expect(pusher.config.timeout).to.equal(1001)
+      expect(pusher.config.timeout).toEqual(1001)
     })
 
-    it("should support `encryptionMasterKey` of 32 bytes", function () {
+    test("should support `encryptionMasterKey` of 32 bytes", () => {
       const key = "01234567890123456789012345678901"
       const pusher = new Pusher({ encryptionMasterKey: key })
-      expect(pusher.config.encryptionMasterKey.toString()).to.equal(key)
+      expect(pusher.config.encryptionMasterKey.toString()).toEqual(key)
     })
 
-    it("should reject `encryptionMasterKey` of 31 bytes", function () {
+    test("should reject `encryptionMasterKey` of 31 bytes", () => {
       const key = "0123456789012345678901234567890"
-      expect(function () {
+      expect(() => {
         new Pusher({ encryptionMasterKey: key })
-      }).to.throwException(/31 bytes/)
+      }).toThrowError(/31 bytes/)
     })
 
-    it("should reject `encryptionMasterKey` of 33 bytes", function () {
+    test("should reject `encryptionMasterKey` of 33 bytes", () => {
       const key = "012345678901234567890123456789012"
-      expect(function () {
+      expect(() => {
         new Pusher({ encryptionMasterKey: key })
-      }).to.throwException(/33 bytes/)
+      }).toThrowError(/33 bytes/)
     })
 
-    it("should support `encryptionMasterKeyBase64` which decodes to 32 bytes", function () {
+    test("should support `encryptionMasterKeyBase64` which decodes to 32 bytes", () => {
       const key = "01234567890123456789012345678901"
       const keyBase64 = Buffer.from(key).toString("base64")
       const pusher = new Pusher({ encryptionMasterKeyBase64: keyBase64 })
-      expect(pusher.config.encryptionMasterKey.toString()).to.equal(key)
+      expect(pusher.config.encryptionMasterKey.toString()).toEqual(key)
     })
 
-    it("should reject `encryptionMasterKeyBase64` which decodes to 31 bytes", function () {
+    test("should reject `encryptionMasterKeyBase64` which decodes to 31 bytes", () => {
       const key = "0123456789012345678901234567890"
       const keyBase64 = Buffer.from(key).toString("base64")
-      expect(function () {
+      expect(() => {
         new Pusher({ encryptionMasterKeyBase64: keyBase64 })
-      }).to.throwException(/31 bytes/)
+      }).toThrowError(/31 bytes/)
     })
 
-    it("should reject `encryptionMasterKeyBase64` which decodes to 33 bytes", function () {
+    test("should reject `encryptionMasterKeyBase64` which decodes to 33 bytes", () => {
       const key = "012345678901234567890123456789012"
       const keyBase64 = Buffer.from(key).toString("base64")
-      expect(function () {
+      expect(() => {
         new Pusher({ encryptionMasterKeyBase64: keyBase64 })
-      }).to.throwException(/33 bytes/)
+      }).toThrowError(/33 bytes/)
     })
 
-    it("should reject `encryptionMasterKeyBase64` which is invalid base64", function () {
+    test("should reject `encryptionMasterKeyBase64` which is invalid base64", () => {
       const keyBase64 = "aGkgd(GhlcmUK"
-      expect(function () {
+      expect(() => {
         new Pusher({ encryptionMasterKeyBase64: keyBase64 })
-      }).to.throwException(/valid base64/)
+      }).toThrowError(/valid base64/)
     })
   })
 })

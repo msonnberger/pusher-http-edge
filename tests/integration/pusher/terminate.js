@@ -1,55 +1,42 @@
-import expect from "expect.js"
-import nock from "nock"
+import { expect, describe, beforeEach, afterEach, test, vi } from "vitest"
 
 import Pusher from "../../../lib/pusher.js"
-import sinon from "sinon"
 
-describe("Pusher", function () {
+describe("Pusher", () => {
   let pusher
 
-  beforeEach(function () {
+  beforeEach(() => {
     pusher = new Pusher({ appId: 1234, key: "f00d", secret: "tofu" })
-    nock.disableNetConnect()
   })
 
-  afterEach(function () {
-    nock.cleanAll()
-    nock.enableNetConnect()
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
-  describe("#terminateUserConnections", function () {
-    it("should throw an error if user id is empty", function () {
-      expect(function () {
+  describe("#terminateUserConnections", () => {
+    test("should throw an error if user id is empty", () => {
+      expect(() => {
         pusher.terminateUserConnections("")
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal("Invalid user id: ''")
-      })
+      }).toThrowError("Invalid user id: ''")
     })
 
-    it("should throw an error if user id is not a string", function () {
-      expect(function () {
+    test("should throw an error if user id is not a string", () => {
+      expect(() => {
         pusher.terminateUserConnections(123)
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal("Invalid user id: '123'")
-      })
+      }).toThrowError("Invalid user id: '123'")
     })
   })
 
-  it("should call /terminate_connections endpoint", function (done) {
-    sinon.stub(pusher, "post")
+  test("should call /terminate_connections endpoint", async () => {
+    pusher.post = vi.fn()
     pusher.appId = 1234
     const userId = "testUserId"
 
     pusher.terminateUserConnections(userId)
 
-    expect(pusher.post.called).to.be(true)
-    expect(pusher.post.getCall(0).args[0]).eql({
+    expect(pusher.post).toHaveBeenNthCalledWith(1, {
       path: `/users/${userId}/terminate_connections`,
       body: {},
     })
-    pusher.post.restore()
-    done()
   })
 })

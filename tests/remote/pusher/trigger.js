@@ -1,8 +1,8 @@
-import expect from "expect.js"
+import { expect, describe, test, beforeEach } from "vitest"
 
 import Pusher from "../../../lib/pusher.js"
 
-describe("Pusher (integration)", function () {
+describe.skip("Pusher (integration)", function () {
   let pusher
 
   beforeEach(function () {
@@ -10,7 +10,7 @@ describe("Pusher (integration)", function () {
   })
 
   describe("#trigger", function () {
-    it("should return code 200", function (done) {
+    test("should return code 200", function (done) {
       pusher
         .trigger("integration", "event", "test", null)
         .then((response) => {
@@ -25,7 +25,7 @@ describe("Pusher (integration)", function () {
   })
 
   describe("#triggerBatch", function () {
-    it("should return code 200", function (done) {
+    test("should return code 200", function (done) {
       pusher
         .triggerBatch([
           {

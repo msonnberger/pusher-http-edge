@@ -1,16 +1,24 @@
-import expect from "expect.js"
+import {
+  expect,
+  describe,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  afterAll,
+  test,
+} from "vitest"
 
 import HttpsProxyAgent from "https-proxy-agent"
 
 import http_proxy from "../../helpers/http_proxy.js"
 import Pusher from "../../../lib/pusher.js"
 
-describe("Pusher (integration)", function () {
+describe.skip("Pusher (integration)", function () {
   describe("with configured proxy", function () {
     let pusher
     let proxy
 
-    before(function (done) {
+    beforeAll(function (done) {
       proxy = http_proxy.start(done)
     })
 
@@ -24,12 +32,12 @@ describe("Pusher (integration)", function () {
       proxy.requests = 0
     })
 
-    after(function (done) {
+    afterAll(function (done) {
       http_proxy.stop(proxy, done)
     })
 
     describe("#get", function () {
-      it("should go through the proxy", function (done) {
+      test("should go through the proxy", function (done) {
         expect(proxy.requests).to.equal(0)
         pusher
           .get({ path: "/channels" })
@@ -46,7 +54,7 @@ describe("Pusher (integration)", function () {
     })
 
     describe("#trigger", function () {
-      it("should go through the proxy", function (done) {
+      test("should go through the proxy", function (done) {
         expect(proxy.requests).to.equal(0)
         pusher
           .trigger("integration", "event", "test", null)

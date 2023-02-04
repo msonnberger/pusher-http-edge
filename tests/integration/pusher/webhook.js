@@ -1,22 +1,22 @@
-import expect from "expect.js"
+import { expect, describe, test, beforeEach } from "vitest"
 
 import Pusher from "../../../lib/pusher.js"
 import WebHook from "../../../lib/webhook.js"
 
-describe("Pusher", function () {
+describe("Pusher", () => {
   let pusher
 
-  beforeEach(function () {
+  beforeEach(() => {
     pusher = new Pusher({ appId: 10000, key: "aaaa", secret: "tofu" })
   })
 
-  describe("#webhook", function () {
-    it("should return a WebHook instance", function () {
-      expect(pusher.webhook({ headers: {}, body: "" })).to.be.a(WebHook)
+  describe("#webhook", () => {
+    test("should return a WebHook instance", () => {
+      expect(pusher.webhook({ headers: {}, body: "" })).toBeInstanceOf(WebHook)
     })
 
-    it("should pass the token to the WebHook", function () {
-      expect(pusher.webhook({ headers: {}, body: "" }).token).to.be(
+    test("should pass the token to the WebHook", () => {
+      expect(pusher.webhook({ headers: {}, body: "" }).token).toBe(
         pusher.config.token
       )
     })

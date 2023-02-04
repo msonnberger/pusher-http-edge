@@ -1,11 +1,11 @@
-import expect from "expect.js"
+import { describe, expect, afterEach, beforeEach, test } from "vitest"
 import NotificationClient from "../../../lib/notification_client.js"
 import nock from "nock"
 
-describe("NativeNotificationClient", function () {
+describe("NativeNotificationClient", () => {
   let client
 
-  beforeEach(function () {
+  beforeEach(() => {
     client = new NotificationClient({
       appId: 1234,
       key: "f00d",
@@ -15,12 +15,12 @@ describe("NativeNotificationClient", function () {
     nock.disableNetConnect()
   })
 
-  afterEach(function () {
+  afterEach(() => {
     nock.cleanAll()
     nock.enableNetConnect()
   })
 
-  xit("should send in the success case", function (done) {
+  test.skip("should send in the success case", (done) => {
     const mock = nock("nativepush-cluster1.pusher.com:80")
     client.notify(
       ["yolo"],
@@ -41,7 +41,7 @@ describe("NativeNotificationClient", function () {
         },
       },
       function () {
-        expect(mock.isDone()).to.be(true)
+        expect(mock.isDone()).toBe(true)
         done()
       }
     )

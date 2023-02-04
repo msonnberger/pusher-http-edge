@@ -1,25 +1,25 @@
-import expect from "expect.js"
+import { expect, describe, beforeEach, afterEach, test } from "vitest"
 import nock from "nock"
 
 import Pusher from "../../../lib/pusher.js"
 
-describe("Pusher", function () {
+describe("Pusher", () => {
   let pusher
 
-  beforeEach(function () {
+  beforeEach(() => {
     pusher = new Pusher({ appId: 999, key: "111111", secret: "tofu" })
     nock.disableNetConnect()
   })
 
-  afterEach(function () {
+  afterEach(() => {
     nock.cleanAll()
     nock.enableNetConnect()
   })
 
-  describe("#get", function () {
-    it("should set the correct path and include all params", function (done) {
+  describe("#get", () => {
+    test("should set the correct path and include all params", async () => {
       nock("http://api.pusherapp.com")
-        .filteringPath(function (path) {
+        .filteringPath((path) => {
           return path
             .replace(/auth_timestamp=[0-9]+/, "auth_timestamp=X")
             .replace(/auth_signature=[0-9a-f]{64}/, "auth_signature=Y")
@@ -29,21 +29,18 @@ describe("Pusher", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .get({
-          path: "/channels",
-          params: {
-            filter_by_prefix: "presence-",
-            info: "user_count,subscription_count",
-          },
-        })
-        .then(() => done())
-        .catch(done)
+      await pusher.get({
+        path: "/channels",
+        params: {
+          filter_by_prefix: "presence-",
+          info: "user_count,subscription_count",
+        },
+      })
     })
 
-    it("should resolve to the response", function (done) {
+    test("should resolve to the response", async () => {
       nock("http://api.pusherapp.com")
-        .filteringPath(function (path) {
+        .filteringPath((path) => {
           return path
             .replace(/auth_timestamp=[0-9]+/, "auth_timestamp=X")
             .replace(/auth_signature=[0-9a-f]{64}/, "auth_signature=Y")
@@ -53,21 +50,15 @@ describe("Pusher", function () {
         )
         .reply(200, '{"test key": "test value"}')
 
-      pusher
-        .get({ path: "/test", params: {} })
-        .then((response) => {
-          expect(response.status).to.equal(200)
-          return response.text().then((body) => {
-            expect(body).to.equal('{"test key": "test value"}')
-            done()
-          })
-        })
-        .catch(done)
+      const response = await pusher.get({ path: "/test", params: {} })
+      expect(response.status).toEqual(200)
+      const body = await response.text()
+      expect(body).toEqual('{"test key": "test value"}')
     })
 
-    it("should reject with a RequestError if Pusher responds with 4xx", function (done) {
+    test("should reject with a RequestError if Pusher responds with 4xx", async () => {
       nock("http://api.pusherapp.com")
-        .filteringPath(function (path) {
+        .filteringPath((path) => {
           return path
             .replace(/auth_timestamp=[0-9]+/, "auth_timestamp=X")
             .replace(/auth_signature=[0-9a-f]{64}/, "auth_signature=Y")
@@ -77,19 +68,19 @@ describe("Pusher", function () {
         )
         .reply(400, "Error")
 
-      pusher.get({ path: "/test", params: {} }).catch((error) => {
-        expect(error).to.be.a(Pusher.RequestError)
-        expect(error.message).to.equal("Unexpected status code 400")
-        expect(error.url).to.match(
-          /^http:\/\/api.pusherapp.com\/apps\/999\/test\?auth_key=111111&auth_timestamp=[0-9]+&auth_version=1\.0&auth_signature=[a-f0-9]+$/
-        )
-        expect(error.status).to.equal(400)
-        expect(error.body).to.equal("Error")
-        done()
-      })
+      const expectedError = new Pusher.RequestError(
+        "Unexpected status code 400",
+        "http://api.pusherapp.com/apps/999/test?auth_key=111111&auth_timestamp=1610000000&auth_version=1.0&auth_signature=00000000000000000000",
+        "Error",
+        400,
+        "Error"
+      )
+      expect(pusher.get({ path: "/test", params: {} })).rejects.toEqual(
+        expectedError
+      )
     })
 
-    it("should respect the encryption, host and port config", function (done) {
+    test("should respect the encryption, host and port config", () => {
       const pusher = new Pusher({
         appId: 999,
         key: "111111",
@@ -99,7 +90,7 @@ describe("Pusher", function () {
         port: 1234,
       })
       nock("https://example.com:1234")
-        .filteringPath(function (path) {
+        .filteringPath((path) => {
           return path
             .replace(/auth_timestamp=[0-9]+/, "auth_timestamp=X")
             .replace(/auth_signature=[0-9a-f]{64}/, "auth_signature=Y")
@@ -109,13 +100,10 @@ describe("Pusher", function () {
         )
         .reply(200, '{"test key": "test value"}')
 
-      pusher
-        .get({ path: "/test", params: {} })
-        .then(() => done())
-        .catch(done)
+      pusher.get({ path: "/test", params: {} })
     })
 
-    it("should respect the timeout when specified", function (done) {
+    test("should respect the timeout when specified", () => {
       const pusher = new Pusher({
         appId: 999,
         key: "111111",
@@ -123,7 +111,7 @@ describe("Pusher", function () {
         timeout: 100,
       })
       nock("http://api.pusherapp.com")
-        .filteringPath(function (path) {
+        .filteringPath((path) => {
           return path
             .replace(/auth_timestamp=[0-9]+/, "auth_timestamp=X")
             .replace(/auth_signature=[0-9a-f]{64}/, "auth_signature=Y")
@@ -134,17 +122,17 @@ describe("Pusher", function () {
         .delayConnection(101)
         .reply(200)
 
-      pusher.get({ path: "/test", params: {} }).catch((error) => {
-        expect(error).to.be.a(Pusher.RequestError)
-        expect(error.message).to.equal("Request failed with an error")
-        expect(error.error.name).to.eql("AbortError")
-        expect(error.url).to.match(
-          /^http:\/\/api.pusherapp.com\/apps\/999\/test\?auth_key=111111&auth_timestamp=[0-9]+&auth_version=1\.0&auth_signature=[a-f0-9]+$/
-        )
-        expect(error.status).to.equal(undefined)
-        expect(error.body).to.equal(undefined)
-        done()
-      })
+      const expectedError = new Pusher.RequestError(
+        "Request failed with an error",
+        "http://api.pusherapp.com/apps/999/test?auth_key=111111&auth_timestamp=1610000000&auth_version=1.0&auth_signature=0000000",
+        { error: { name: "AbortError" } },
+        undefined,
+        undefined
+      )
+
+      expect(pusher.get({ path: "/test", params: {} })).rejects.toEqual(
+        expectedError
+      )
     })
   })
 })

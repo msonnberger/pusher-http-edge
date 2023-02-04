@@ -1,18 +1,18 @@
-import expect from "expect.js"
+import { describe, expect, test, beforeEach } from "vitest"
 
 import Pusher from "../../lib/pusher.js"
 import Token from "../../lib/token.js"
 import WebHook from "../../lib/webhook.js"
 
-describe("WebHook", function () {
+describe("WebHook", () => {
   let token
 
-  beforeEach(function () {
+  beforeEach(() => {
     token = new Token("123456789", "tofu")
   })
 
-  describe("#isValid", function () {
-    it("should return true for a webhook with correct signature", function () {
+  describe("#isValid", () => {
+    test("should return true for a webhook with correct signature", () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "123456789",
@@ -25,10 +25,10 @@ describe("WebHook", function () {
           events: [{ channel: "test_channel", name: "channel_vacated" }],
         }),
       })
-      expect(webhook.isValid()).to.be(true)
+      expect(webhook.isValid()).toBe(true)
     })
 
-    it("should return false for a webhook with incorrect key", function () {
+    test("should return false for a webhook with incorrect key", () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "000",
@@ -41,10 +41,10 @@ describe("WebHook", function () {
           events: [{ channel: "test_channel", name: "channel_vacated" }],
         }),
       })
-      expect(webhook.isValid()).to.be(false)
+      expect(webhook.isValid()).toBe(false)
     })
 
-    it("should return false for a webhook with incorrect signature", function () {
+    test("should return false for a webhook with incorrect signature", () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "123456789",
@@ -56,10 +56,10 @@ describe("WebHook", function () {
           events: [{ channel: "test_channel", name: "channel_vacated" }],
         }),
       })
-      expect(webhook.isValid()).to.be(false)
+      expect(webhook.isValid()).toBe(false)
     })
 
-    it("should return true if webhook is signed with the extra token", function () {
+    test("should return true if webhook is signed with the extra token", () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "1234",
@@ -72,10 +72,10 @@ describe("WebHook", function () {
           events: [{ channel: "test_channel", name: "channel_vacated" }],
         }),
       })
-      expect(webhook.isValid(new Token("1234", "tofu"))).to.be(true)
+      expect(webhook.isValid(new Token("1234", "tofu"))).toBe(true)
     })
 
-    it("should return true if webhook is signed with one of the extra tokens", function () {
+    test("should return true if webhook is signed with one of the extra tokens", () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "3",
@@ -94,66 +94,66 @@ describe("WebHook", function () {
           new Token("2", "not really"),
           new Token("3", "tofu"),
         ])
-      ).to.be(true)
+      ).toBe(true)
     })
   })
 
-  describe("#isContentTypeValid", function () {
-    it("should return true if content type is `application/json`", function () {
+  describe("#isContentTypeValid", () => {
+    test("should return true if content type is `application/json`", () => {
       const webhook = new WebHook(token, {
         headers: {
           "content-type": "application/json",
         },
         rawBody: JSON.stringify({}),
       })
-      expect(webhook.isContentTypeValid()).to.be(true)
+      expect(webhook.isContentTypeValid()).toBe(true)
     })
 
-    it("should return false if content type is not `application/json`", function () {
+    test("should return false if content type is not `application/json`", () => {
       const webhook = new WebHook(token, {
         headers: {
           "content-type": "application/weird",
         },
         rawBody: JSON.stringify({}),
       })
-      expect(webhook.isContentTypeValid()).to.be(false)
+      expect(webhook.isContentTypeValid()).toBe(false)
     })
   })
 
-  describe("#isBodyValid", function () {
-    it("should return true if content type is `application/json` and body is valid JSON", function () {
+  describe("#isBodyValid", () => {
+    test("should return true if content type is `application/json` and body is valid JSON", () => {
       const webhook = new WebHook(token, {
         headers: {
           "content-type": "application/json",
         },
         rawBody: JSON.stringify({}),
       })
-      expect(webhook.isBodyValid()).to.be(true)
+      expect(webhook.isBodyValid()).toBe(true)
     })
 
-    it("should return false if content type is `application/json` and body is not valid JSON", function () {
+    test("should return false if content type is `application/json` and body is not valid JSON", () => {
       const webhook = new WebHook(token, {
         headers: {
           "content-type": "application/json",
         },
         rawBody: "not json!",
       })
-      expect(webhook.isBodyValid()).to.be(false)
+      expect(webhook.isBodyValid()).toBe(false)
     })
 
-    it("should return false if content type is not `application/json`", function () {
+    test("should return false if content type is not `application/json`", () => {
       const webhook = new WebHook(token, {
         headers: {
           "content-type": "application/weird",
         },
         rawBody: JSON.stringify({}),
       })
-      expect(webhook.isContentTypeValid()).to.be(false)
+      expect(webhook.isContentTypeValid()).toBe(false)
     })
   })
 
-  describe("#getData", function () {
-    it("should return a parsed JSON body", function () {
+  describe("#getData", () => {
+    test("should return a parsed JSON body", () => {
       const webhook = new WebHook(token, {
         headers: { "content-type": "application/json" },
         rawBody: JSON.stringify({ foo: 9 }),
@@ -161,7 +161,7 @@ describe("WebHook", function () {
       expect(webhook.getData()).to.eql({ foo: 9 })
     })
 
-    it("should throw an error if content type is not `application/json`", function () {
+    test("should throw an error if content type is not `application/json`", () => {
       const body = JSON.stringify({ foo: 9 })
       const webhook = new WebHook(token, {
         headers: {
@@ -170,18 +170,19 @@ describe("WebHook", function () {
         },
         rawBody: body,
       })
-      expect(function () {
+
+      const expectedError = new Pusher.WebHookError(
+        "Invalid WebHook body",
+        "application/weird",
+        body,
+        "f000000"
+      )
+      expect(() => {
         webhook.getData()
-      }).to.throwError(function (e) {
-        expect(e).to.be.a(Pusher.WebHookError)
-        expect(e.message).to.equal("Invalid WebHook body")
-        expect(e.contentType).to.equal("application/weird")
-        expect(e.body).to.equal(body)
-        expect(e.signature).to.equal("f000000")
-      })
+      }).toThrowError(expectedError)
     })
 
-    it("should throw an error if body is not valid JSON", function () {
+    test("should throw an error if body is not valid JSON", () => {
       const webhook = new WebHook(token, {
         headers: {
           "content-type": "application/json",
@@ -189,19 +190,21 @@ describe("WebHook", function () {
         },
         rawBody: "not json",
       })
-      expect(function () {
+      const expectedError = new Pusher.WebHookError(
+        "Invalid WebHook body",
+        "application/json",
+        "not json",
+        "b00"
+      )
+
+      expect(() => {
         webhook.getData()
-      }).to.throwError(function (e) {
-        expect(e).to.be.a(Pusher.WebHookError)
-        expect(e.contentType).to.equal("application/json")
-        expect(e.body).to.equal("not json")
-        expect(e.signature).to.equal("b00")
-      })
+      }).toThrowError(expectedError)
     })
   })
 
-  describe("#getTime", function () {
-    it("should return a correct date object", function () {
+  describe("#getTime", () => {
+    test("should return a correct date object", () => {
       const webhook = new WebHook(token, {
         headers: { "content-type": "application/json" },
         rawBody: JSON.stringify({ time_ms: 1403172023361 }),
@@ -210,8 +213,8 @@ describe("WebHook", function () {
     })
   })
 
-  describe("#getEvents", function () {
-    it("should return an array of events", function () {
+  describe("#getEvents", () => {
+    test("should return an array of events", () => {
       const webhook = new WebHook(token, {
         headers: { "content-type": "application/json" },
         rawBody: JSON.stringify({

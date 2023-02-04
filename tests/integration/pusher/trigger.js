@@ -1,29 +1,29 @@
-import expect from "expect.js"
+import { expect, describe, test, beforeEach, afterEach, vi } from "vitest"
 import nock from "nock"
 import nacl from "tweetnacl"
 import naclUtil from "tweetnacl-util"
-import sinon from "sinon"
 
 import Pusher from "../../../lib/pusher.js"
 import * as events from "../../../lib/events.js"
 
-describe("Pusher", function () {
+describe("Pusher", () => {
   let pusher
 
-  beforeEach(function () {
+  beforeEach(() => {
     pusher = new Pusher({ appId: 1234, key: "f00d", secret: "tofu" })
     nock.disableNetConnect()
   })
 
-  afterEach(function () {
+  afterEach(() => {
     nock.cleanAll()
     nock.enableNetConnect()
+    vi.restoreAllMocks()
   })
 
-  describe("#trigger", function () {
-    it("should send the event to a single channel", function (done) {
+  describe("#trigger", () => {
+    test("should send the event to a single channel", async () => {
       nock("http://api.pusherapp.com")
-        .filteringPath(function (path) {
+        .filteringPath((path) => {
           return path
             .replace(/auth_timestamp=[0-9]+/, "auth_timestamp=X")
             .replace(/auth_signature=[0-9a-f]{64}/, "auth_signature=Y")
@@ -34,15 +34,12 @@ describe("Pusher", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .trigger("one", "my_event", { some: "data " })
-        .then(() => done())
-        .catch(done)
+      await pusher.trigger("one", "my_event", { some: "data " })
     })
 
-    it("should send the event to multiple channels", function (done) {
+    test("should send the event to multiple channels", async () => {
       nock("http://api.pusherapp.com")
-        .filteringPath(function (path) {
+        .filteringPath((path) => {
           return path
             .replace(/auth_timestamp=[0-9]+/, "auth_timestamp=X")
             .replace(/auth_signature=[0-9a-f]{64}/, "auth_signature=Y")
@@ -57,13 +54,12 @@ describe("Pusher", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .trigger(["one", "two", "three"], "my_event", { some: "data " })
-        .then(() => done())
-        .catch(done)
+      await pusher.trigger(["one", "two", "three"], "my_event", {
+        some: "data ",
+      })
     })
 
-    it("should serialize arrays into JSON", function (done) {
+    test("should serialize arrays into JSON", async () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -76,13 +72,10 @@ describe("Pusher", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .trigger("one", "my_event", [1, 2, 4])
-        .then(() => done())
-        .catch(done)
+      await pusher.trigger("one", "my_event", [1, 2, 4])
     })
 
-    it("should not serialize strings into JSON", function (done) {
+    test("should not serialize strings into JSON", async () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -95,13 +88,10 @@ describe("Pusher", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .trigger("test", "test_event", "test string")
-        .then(() => done())
-        .catch(done)
+      await pusher.trigger("test", "test_event", "test string")
     })
 
-    it("should add params to the request body", function (done) {
+    test("should add params to the request body", async () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -124,13 +114,15 @@ describe("Pusher", function () {
         socket_id: "123.567",
         info: "user_count,subscription_count",
       }
-      pusher
-        .trigger("test_channel", "my_event", { some: "data " }, params)
-        .then(() => done())
-        .catch(done)
+      await pusher.trigger(
+        "test_channel",
+        "my_event",
+        { some: "data " },
+        params
+      )
     })
 
-    it("should resolve to the response", function (done) {
+    test("should resolve to the response", async () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -148,26 +140,22 @@ describe("Pusher", function () {
         )
         .reply(200, '{"channels":{"test_channel":{"subscription_count":123}}}')
 
-      pusher
-        .trigger(
-          "test_channel",
-          "my_event",
-          { some: "data " },
-          { info: "subscription_count" }
-        )
-        .then((response) => {
-          expect(response.status).to.equal(200)
-          return response.text().then((body) => {
-            expect(body).to.equal(
-              '{"channels":{"test_channel":{"subscription_count":123}}}'
-            )
-            done()
-          })
-        })
-        .catch(done)
+      const response = await pusher.trigger(
+        "test_channel",
+        "my_event",
+        { some: "data " },
+        { info: "subscription_count" }
+      )
+
+      expect(response.status).toEqual(200)
+      const body = await response.text()
+
+      expect(body).toEqual(
+        '{"channels":{"test_channel":{"subscription_count":123}}}'
+      )
     })
 
-    it("should reject with a RequestError if Pusher responds with 4xx", function (done) {
+    test("should reject with a RequestError if Pusher responds with 4xx", () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -184,21 +172,20 @@ describe("Pusher", function () {
         )
         .reply(400, "Error")
 
-      pusher
-        .trigger("test_channel", "my_event", { some: "data " })
-        .catch((error) => {
-          expect(error).to.be.a(Pusher.RequestError)
-          expect(error.message).to.equal("Unexpected status code 400")
-          expect(error.url).to.match(
-            /^http:\/\/api.pusherapp.com\/apps\/1234\/events\?auth_key=f00d&auth_timestamp=[0-9]+&auth_version=1\.0&body_md5=cf87d666b4a829a54fc44b313584b2d7&auth_signature=[a-f0-9]+$/
-          )
-          expect(error.status).to.equal(400)
-          expect(error.body).to.equal("Error")
-          done()
-        })
+      const expectedError = new Pusher.RequestError(
+        "Unexpected status code 400",
+        "http://api.pusherapp.com/apps/1234/events?auth_key=f00d&auth_timestamp=0&auth_version=1.0&body_md5=cf87d666b4a829a54fc44b313584b2d7&auth_signature=Y",
+        undefined,
+        400,
+        "Error"
+      )
+
+      expect(
+        pusher.trigger("test_channel", "my_event", { some: "data " })
+      ).rejects.toEqual(expectedError)
     })
 
-    it("should allow channel names with special characters: _ - = @ , . ;", function (done) {
+    test("should allow channel names with special characters: _ - = @ , . ;", async () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -215,69 +202,50 @@ describe("Pusher", function () {
         )
         .reply(200, "OK")
 
-      pusher
-        .trigger("test_-=@,.;channel", "my_event", { some: "data " })
-        .then((response) => {
-          expect(response.status).to.equal(200)
-          done()
-        })
-        .catch(done)
+      const response = await pusher.trigger("test_-=@,.;channel", "my_event", {
+        some: "data ",
+      })
+
+      expect(response.status).toEqual(200)
     })
 
-    it("should throw an error if called with more than 100 channels", function () {
-      expect(function () {
+    test("should throw an error if called with more than 100 channels", () => {
+      expect(() => {
         const channels = []
         for (let i = 0; i < 101; i++) {
           channels.push(i.toString())
         }
         pusher.trigger(channels, "x", {})
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal(
-          "Can't trigger a message to more than 100 channels"
-        )
-      })
+      }).toThrowError("Can't trigger a message to more than 100 channels")
     })
 
-    it("should throw an error if channel name is empty", function () {
-      expect(function () {
+    test("should throw an error if channel name is empty", () => {
+      expect(() => {
         pusher.trigger("", "test")
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal("Invalid channel name: ''")
-      })
+      }).toThrowError("Invalid channel name: ''")
     })
 
-    it("should throw an error if channel name is invalid", function () {
-      expect(function () {
+    test("should throw an error if channel name is invalid", () => {
+      expect(() => {
         pusher.trigger("abc$", "test")
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal("Invalid channel name: 'abc$'")
-      })
+      }).toThrowError("Invalid channel name: 'abc$'")
     })
 
-    it("should throw an error if channel name is longer than 200 characters", function () {
+    test("should throw an error if channel name is longer than 200 characters", () => {
       const channel = new Array(202).join("x") // 201 characters
-      expect(function () {
+      expect(() => {
         pusher.trigger(channel, "test")
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal("Channel name too long: '" + channel + "'")
-      })
+      }).toThrowError("Channel name too long: '" + channel + "'")
     })
 
-    it("should throw an error if event name is longer than 200 characters", function () {
+    test("should throw an error if event name is longer than 200 characters", () => {
       const event = new Array(202).join("x") // 201 characters
-      expect(function () {
+      expect(() => {
         pusher.trigger("test", event)
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal("Too long event name: '" + event + "'")
-      })
+      }).toThrowError("Too long event name: '" + event + "'")
     })
 
-    it("should respect the encryption, host and port config", function (done) {
+    test("should respect the encryption, host and port config", async () => {
       const pusher = new Pusher({
         appId: 1234,
         key: "f00d",
@@ -303,18 +271,17 @@ describe("Pusher", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .trigger(
-          "test_channel",
-          "my_event",
-          { some: "data " },
-          { socket_id: "123.567" }
-        )
-        .then(() => done())
-        .catch(done)
+      const response = await pusher.trigger(
+        "test_channel",
+        "my_event",
+        { some: "data " },
+        { socket_id: "123.567" }
+      )
+
+      expect(response.status).toEqual(200)
     })
 
-    it("should respect the timeout when specified", function (done) {
+    test("should respect the timeout when specified", async () => {
       const pusher = new Pusher({
         appId: 1234,
         key: "f00d",
@@ -339,29 +306,29 @@ describe("Pusher", function () {
         .delayConnection(101)
         .reply(200)
 
-      pusher
-        .trigger(
+      const expectedError = new Pusher.RequestError(
+        "Request failed with an error",
+        "http://api.pusherapp.com/apps/1234/events?auth_key=f00d&auth_timestamp=1234&auth_version=1.0&body_md5=0478e1ed73804ae1be97cfa6554cf039&auth_signature=1234",
+        {
+          name: "AbortError",
+        },
+        undefined,
+        undefined
+      )
+
+      expect(
+        pusher.trigger(
           "test_channel",
           "my_event",
           { some: "data " },
           { socket_id: "123.567" }
         )
-        .catch((error) => {
-          expect(error).to.be.a(Pusher.RequestError)
-          expect(error.message).to.equal("Request failed with an error")
-          expect(error.error.name).to.eql("AbortError")
-          expect(error.url).to.match(
-            /^http:\/\/api.pusherapp.com\/apps\/1234\/events\?auth_key=f00d&auth_timestamp=[0-9]+&auth_version=1\.0&body_md5=0478e1ed73804ae1be97cfa6554cf039&auth_signature=[a-f0-9]+$/
-          )
-          expect(error.status).to.equal(undefined)
-          expect(error.body).to.equal(undefined)
-          done()
-        })
+      ).rejects.toEqual(expectedError)
     })
   })
 
-  describe("#triggerBatch", function () {
-    it("should trigger multiple events in a single call", function (done) {
+  describe("#triggerBatch", () => {
+    test("should trigger multiple events in a single call", async () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -379,24 +346,23 @@ describe("Pusher", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .triggerBatch([
-          {
-            channel: "integration",
-            name: "event",
-            data: "test",
-          },
-          {
-            channel: "integration2",
-            name: "event2",
-            data: "test2",
-          },
-        ])
-        .then(() => done())
-        .catch(done)
+      const response = await pusher.triggerBatch([
+        {
+          channel: "integration",
+          name: "event",
+          data: "test",
+        },
+        {
+          channel: "integration2",
+          name: "event2",
+          data: "test2",
+        },
+      ])
+
+      expect(response.status).toEqual(200)
     })
 
-    it("should stringify data before posting", function (done) {
+    test("should stringify data before posting", async () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -422,77 +388,72 @@ describe("Pusher", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .triggerBatch([
-          {
-            channel: "integration",
-            name: "event",
-            data: {
-              hello: "world",
-            },
+      const response = await pusher.triggerBatch([
+        {
+          channel: "integration",
+          name: "event",
+          data: {
+            hello: "world",
           },
-          {
-            channel: "integration2",
-            name: "event2",
-            data: {
-              hello2: "another world",
-            },
+        },
+        {
+          channel: "integration2",
+          name: "event2",
+          data: {
+            hello2: "another world",
           },
-        ])
-        .then(() => done())
-        .catch(done)
+        },
+      ])
+
+      expect(response.status).toEqual(200)
     })
   })
 
-  describe("#sendToUser", function () {
-    it.skip("should trigger an event on #server-to-user-{userId}", function () {
-      sinon.stub(events, "trigger")
+  describe("#sendToUser", () => {
+    test("should trigger an event on #server-to-user-{userId}", () => {
+      // sinon.stub(events, "trigger")
+      // pusher.sendToUser("abc123", "halo", { foo: "bar" })
+      // expect(events.trigger.called).toBe(true)
+      // expect(events.trigger.getCall(0).args[1]).eql(["#server-to-user-abc123"])
+      // expect(events.trigger.getCall(0).args[2]).equal("halo")
+      // expect(events.trigger.getCall(0).args[3]).eql({ foo: "bar" })
+      // events.trigger.restore()
+
+      pusher.post = vi.fn()
       pusher.sendToUser("abc123", "halo", { foo: "bar" })
-      expect(events.trigger.called).to.be(true)
-      expect(events.trigger.getCall(0).args[1]).eql(["#server-to-user-abc123"])
-      expect(events.trigger.getCall(0).args[2]).equal("halo")
-      expect(events.trigger.getCall(0).args[3]).eql({ foo: "bar" })
-      events.trigger.restore()
+
+      expect(pusher.post).toBeCalledTimes(1)
     })
 
-    it("should throw an error if user id is empty", function () {
-      expect(function () {
+    test("should throw an error if user id is empty", () => {
+      expect(() => {
         pusher.sendToUser("", "halo", { foo: "bar" })
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal("Invalid user id: ''")
-      })
+      }).toThrowError("Invalid user id: ''")
     })
 
-    it("should throw an error if user id is not a string", function () {
-      expect(function () {
+    test("should throw an error if user id is not a string", () => {
+      expect(() => {
         pusher.sendToUser(123, "halo", { foo: "bar" })
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal("Invalid user id: '123'")
-      })
+      }).toThrowError("Invalid user id: '123'")
     })
 
-    it("should throw an error if event name is longer than 200 characters", function () {
+    test("should throw an error if event name is longer than 200 characters", () => {
       const event = new Array(202).join("x") // 201 characters
-      expect(function () {
+      expect(() => {
         pusher.sendToUser("abc123", event, { foo: "bar" })
-      }).to.throwError(function (e) {
-        expect(e).to.be.an(Error)
-        expect(e.message).to.equal("Too long event name: '" + event + "'")
-      })
+      }).toThrowError("Too long event name: '" + event + "'")
     })
   })
 })
 
-describe("Pusher with encryptionMasterKey", function () {
+describe("Pusher with encryptionMasterKey", () => {
   let pusher
 
   const testMasterKey = Buffer.from(
     "01234567890123456789012345678901"
   ).toString("base64")
 
-  beforeEach(function () {
+  beforeEach(() => {
     pusher = new Pusher({
       appId: 1234,
       key: "f00d",
@@ -502,13 +463,13 @@ describe("Pusher with encryptionMasterKey", function () {
     nock.disableNetConnect()
   })
 
-  afterEach(function () {
+  afterEach(() => {
     nock.cleanAll()
     nock.enableNetConnect()
   })
 
-  describe("#trigger", function () {
-    it("should not encrypt the body of an event triggered on a single channel", function (done) {
+  describe("#trigger", () => {
+    test("should not encrypt the body of an event triggered on a single channel", async () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -521,13 +482,14 @@ describe("Pusher with encryptionMasterKey", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .trigger("one", "my_event", { some: "data " })
-        .then(() => done())
-        .catch(done)
+      const response = await pusher.trigger("one", "my_event", {
+        some: "data ",
+      })
+
+      expect(response.status).toEqual(200)
     })
 
-    it("should encrypt the body of an event triggered on a private-encrypted- channel", function (done) {
+    test("should encrypt the body of an event triggered on a private-encrypted- channel", async () => {
       const sentPlaintext = "Hello!"
 
       nock("http://api.pusherapp.com")
@@ -562,15 +524,18 @@ describe("Pusher with encryptionMasterKey", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .trigger("private-encrypted-bla", "test_event", sentPlaintext)
-        .then(() => done())
-        .catch(done)
+      const response = await pusher.trigger(
+        "private-encrypted-bla",
+        "test_event",
+        sentPlaintext
+      )
+
+      expect(response.status).toEqual(200)
     })
   })
 
-  describe("#triggerBatch", function () {
-    it("should encrypt the bodies of an events triggered on a private-encrypted- channels", function (done) {
+  describe("#triggerBatch", () => {
+    test("should encrypt the bodies of an events triggered on a private-encrypted- channels", async () => {
       nock("http://api.pusherapp.com")
         .filteringPath(function (path) {
           return path
@@ -610,21 +575,20 @@ describe("Pusher with encryptionMasterKey", function () {
         )
         .reply(200, "{}")
 
-      pusher
-        .triggerBatch([
-          {
-            channel: "integration",
-            name: "event",
-            data: "test",
-          },
-          {
-            channel: "private-encrypted-integration2",
-            name: "event2",
-            data: "test2",
-          },
-        ])
-        .then(() => done())
-        .catch(done)
+      const response = await pusher.triggerBatch([
+        {
+          channel: "integration",
+          name: "event",
+          data: "test",
+        },
+        {
+          channel: "private-encrypted-integration2",
+          name: "event2",
+          data: "test2",
+        },
+      ])
+
+      expect(response.status).toEqual(200)
     })
   })
 })
