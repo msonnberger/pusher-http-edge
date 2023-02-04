@@ -43,10 +43,10 @@
     "webpack-cli": "^3.3.11"
   },
   "scripts": {
-    "local-test": "npx mocha 'tests/integration/**/*.js'",
-    "test": "npx mocha 'tests/{integration,remote}/**/*.js'",
-    "lint": "npx eslint . && npx prettier --check .",
-    "format": "npx prettier --write ."
+    "local-test": "mocha 'tests/integration/**/*.js'",
+    "test": "mocha 'tests/{integration,remote}/**/*.js'",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write ."
   },
   "keywords": [
     "pusher",
@@ -58,6 +58,7 @@
   "main": "lib/pusher",
   "typings": "index.d.ts",
   "engines": {
-    "node": ">= 4.0.0"
-  }
+    "pnpm": "^7.0.0"
+  },
+  "packageManager": "pnpm@7.26.3"
 }
