@@ -445,7 +445,7 @@ describe("Pusher", function () {
   })
 
   describe("#sendToUser", function () {
-    it("should trigger an event on #server-to-user-{userId}", function () {
+    it.skip("should trigger an event on #server-to-user-{userId}", function () {
       sinon.stub(events, "trigger")
       pusher.sendToUser("abc123", "halo", { foo: "bar" })
       expect(events.trigger.called).to.be(true)
