@@ -2,6 +2,7 @@ import Pusher from "./pusher"
 import Token from "./token"
 import { UserChannelData, ChannelAuthResponse } from "./types"
 import * as util from "./util"
+import naclUtil from "tweetnacl-util"
 
 export function getSocketSignatureForUser(
   token: Token,
@@ -9,14 +10,14 @@ export function getSocketSignatureForUser(
   userData: UserChannelData
 ) {
   const serializedUserData = JSON.stringify(userData)
-  const signature = token.sign(`${socketId}::user::${serializedUserData}`)
+  const signature = `${socketId}::user::${serializedUserData}`
   return {
     auth: `${token.key}:${signature}`,
     user_data: serializedUserData,
   }
 }
 
-export function getSocketSignature(
+export async function getSocketSignature(
   pusher: Pusher,
   token: Token,
   channel: string,
@@ -32,7 +33,7 @@ export function getSocketSignature(
     result.channel_data = serializedData
   }
 
-  result.auth = token.key + ":" + token.sign(signatureData.join(":"))
+  result.auth = token.key + ":" + (await token.sign(signatureData.join(":")))
 
   if (util.isEncryptedChannel(channel)) {
     if (pusher.config.encryptionMasterKey === undefined) {
@@ -40,9 +41,10 @@ export function getSocketSignature(
         "Cannot generate shared_secret because encryptionMasterKey is not set"
       )
     }
-    result.shared_secret = Buffer.from(
-      pusher.channelSharedSecret(channel)
-    ).toString("base64")
+
+    result.shared_secret = naclUtil.encodeBase64(
+      await pusher.channelSharedSecret(channel)
+    )
   }
 
   return result

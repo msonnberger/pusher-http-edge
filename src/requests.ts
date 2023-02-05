@@ -1,12 +1,9 @@
-import fetch, { Headers } from "node-fetch"
-import AbortController from "abort-controller"
-
 import * as errors from "./errors"
 import * as util from "./util"
 
 import pusherLibraryVersion from "./version"
 import PusherConfig from "./pusher_config"
-import { RequestOptions, ReservedParams } from "./types"
+import { RequestOptions, SignedQueryStringOptions } from "./types"
 import Token from "./token"
 
 const RESERVED_QUERY_KEYS: { [key: string]: boolean } = {
@@ -43,10 +40,13 @@ export function send(
   }
 
   let signal
-  let timeout: NodeJS.Timeout
+  let timeout: number
   if (config.timeout) {
     const controller = new AbortController()
-    timeout = setTimeout(() => controller.abort(), config.timeout)
+    timeout = (setTimeout(
+      () => controller.abort(),
+      config.timeout
+    ) as unknown) as number
     signal = controller.signal
   }
 
@@ -55,7 +55,6 @@ export function send(
     body,
     headers,
     signal,
-    agent: config.agent,
   }).then(
     (res) => {
       clearTimeout(timeout)
@@ -79,7 +78,10 @@ export function send(
   )
 }
 
-export function createSignedQueryString(token: Token, request: any) {
+export async function createSignedQueryString(
+  token: Token,
+  request: SignedQueryStringOptions
+) {
   const timestamp = (Date.now() / 1000) | 0
 
   const params: Record<string, any> = {
@@ -106,7 +108,7 @@ export function createSignedQueryString(token: Token, request: any) {
   let queryString = sortedKeyVal.join("&")
 
   const signData = [method, request.path, queryString].join("\n")
-  queryString += "&auth_signature=" + token.sign(signData)
+  queryString += "&auth_signature=" + (await token.sign(signData))
 
   return queryString
 }

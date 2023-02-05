@@ -8,6 +8,7 @@
     "allowJs": true,
     "esModuleInterop": true,
     "strict": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["@edge-runtime/types"]
   }
 }

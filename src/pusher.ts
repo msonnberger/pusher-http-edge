@@ -1,5 +1,3 @@
-import crypto from "node:crypto"
-
 import * as auth from "./auth"
 import * as errors from "./errors"
 import * as events from "./events"
@@ -19,7 +17,6 @@ import {
   GetOptions,
   SignedQueryStringOptions,
 } from "./types.js"
-import type { Response } from "node-fetch"
 
 function validateChannel(channel: string) {
   if (
@@ -113,7 +110,11 @@ export default class Pusher {
    * @param [data] additional socket data
    * @returns authorization signature
    */
-  authorizeChannel(socketId: string, channel: string, data?: UserChannelData) {
+  async authorizeChannel(
+    socketId: string,
+    channel: string,
+    data?: UserChannelData
+  ) {
     validateSocketId(socketId)
     validateChannel(channel)
 
@@ -149,11 +150,7 @@ export default class Pusher {
    * @returns {Promise} a promise resolving to a response, or rejecting to a RequestError.
    * @see RequestError
    */
-  sendToUser(
-    userId: string,
-    event: string,
-    data: UserChannelData
-  ): Promise<Response> {
+  async sendToUser(userId: string, event: string, data: UserChannelData) {
     if (event.length > 200) {
       throw new Error("Too long event name: '" + event + "'")
     }
@@ -168,7 +165,7 @@ export default class Pusher {
    * @returns a promise resolving to a response, or rejecting to a RequestError.
    * @see RequestError
    */
-  terminateUserConnections(userId: string): Promise<Response> {
+  async terminateUserConnections(userId: string) {
     validateUserId(userId)
     return this.post({
       path: `/users/${userId}/terminate_connections`,
@@ -193,12 +190,12 @@ export default class Pusher {
    * @param [params.info] a comma separate list of attributes to be returned in the response. Experimental, see https://pusher.com/docs/lab#experimental-program
    * @see RequestError
    */
-  trigger(
+  async trigger(
     channels: string | string[],
     event: string,
     data: any,
     params?: TriggerParams
-  ): Promise<Response> {
+  ) {
     if (params && params.socket_id) {
       validateSocketId(params.socket_id)
     }
@@ -229,7 +226,7 @@ export default class Pusher {
    *   info: [optional] string experimental, see https://pusher.com/docs/lab#experimental-program
    * }
    */
-  triggerBatch(batch: BatchEvent[]): Promise<Response> {
+  async triggerBatch(batch: BatchEvent[]) {
     return events.triggerBatch(this, batch)
   }
 
@@ -243,7 +240,7 @@ export default class Pusher {
    * @param {String} options.body request body
    * @see RequestError
    */
-  post(options: PostOptions) {
+  async post(options: PostOptions) {
     return requests.send(this.config, { ...options, method: "POST" })
   }
 
@@ -256,7 +253,7 @@ export default class Pusher {
    * @param {Object} options.params query params
    * @see RequestError
    */
-  get(options: GetOptions) {
+  async get(options: GetOptions) {
     return requests.send(this.config, { ...options, method: "GET" })
   }
 
@@ -280,21 +277,24 @@ export default class Pusher {
    * @param {String} options.body request body
    * @returns {String} signed query string
    */
-  createSignedQueryString(options: SignedQueryStringOptions) {
+  async createSignedQueryString(options: SignedQueryStringOptions) {
     return requests.createSignedQueryString(this.config.token, options)
   }
 
-  channelSharedSecret(channel: string) {
+  async channelSharedSecret(channel: string) {
     if (this.config.encryptionMasterKey === undefined) {
       throw new Error("Encryption master key is not set")
     }
 
-    return crypto
-      .createHash("sha256")
-      .update(
-        Buffer.concat([Buffer.from(channel), this.config.encryptionMasterKey])
-      )
-      .digest()
+    const channelArray = new TextEncoder().encode(channel)
+    const data = new Uint8Array(
+      channelArray.length + this.config.encryptionMasterKey.length
+    )
+    data.set(channelArray)
+    data.set(this.config.encryptionMasterKey, channelArray.length)
+
+    const buf = await crypto.subtle.digest("SHA-256", data)
+    return new Uint8Array(buf)
   }
 
   /** Exported {@link Token} constructor. */

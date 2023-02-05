@@ -1,13 +1,9 @@
-import { Agent } from "http"
-import { Response } from "node-fetch"
-
 export interface Options {
   appId: string
   key: string
   secret: string
   useTLS?: boolean
   timeout?: number
-  agent?: Agent
   encryptionMasterKeyBase64?: string
   notificationHost?: string
   notificationEncrypted?: boolean
@@ -107,5 +103,3 @@ export interface Token {
   key: string
   secret: string
 }
-
-export { Response }

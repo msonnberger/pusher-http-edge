@@ -44,7 +44,7 @@ export default class WebHook {
    * @param {Token|Token[]} list of additional tokens to be validated against
    * @returns {Boolean}
    */
-  isValid(extraTokens?: Token | Token[]) {
+  async isValid(extraTokens?: Token | Token[]) {
     if (!this.isBodyValid()) {
       return false
     }
@@ -57,7 +57,10 @@ export default class WebHook {
     const tokens = [this.token].concat(extraTokens)
     for (const i in tokens) {
       const token = tokens[i]
-      if (this.key == token.key && token.verify(this.body, this.signature)) {
+      if (
+        this.key == token.key &&
+        (await token.verify(this.body, this.signature))
+      ) {
         return true
       }
     }

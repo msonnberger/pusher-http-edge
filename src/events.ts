@@ -4,7 +4,7 @@ import naclUtil from "tweetnacl-util"
 import Pusher from "./pusher"
 import { BatchEvent, TriggerParams } from "./types"
 
-function encrypt(pusher: Pusher, channel: string, data: unknown) {
+async function encrypt(pusher: Pusher, channel: string, data: unknown) {
   if (pusher.config.encryptionMasterKey === undefined) {
     throw new Error(
       "Set encryptionMasterKey before triggering events on encrypted channels"
@@ -16,7 +16,7 @@ function encrypt(pusher: Pusher, channel: string, data: unknown) {
   const ciphertextBytes = nacl.secretbox(
     naclUtil.decodeUTF8(JSON.stringify(data)),
     nonceBytes,
-    pusher.channelSharedSecret(channel)
+    await pusher.channelSharedSecret(channel)
   )
 
   return JSON.stringify({
@@ -25,7 +25,7 @@ function encrypt(pusher: Pusher, channel: string, data: unknown) {
   })
 }
 
-export function trigger(
+export async function trigger(
   pusher: Pusher,
   channels: string[],
   eventName: string,
@@ -36,7 +36,7 @@ export function trigger(
     const channel = channels[0]
     const event = {
       name: eventName,
-      data: encrypt(pusher, channel, data),
+      data: await encrypt(pusher, channel, data),
       channels: [channel],
       ...params,
     }
@@ -61,10 +61,10 @@ export function trigger(
   }
 }
 
-export function triggerBatch(pusher: Pusher, batch: BatchEvent[]) {
+export async function triggerBatch(pusher: Pusher, batch: BatchEvent[]) {
   for (let i = 0; i < batch.length; i++) {
     batch[i].data = util.isEncryptedChannel(batch[i].channel)
-      ? encrypt(pusher, batch[i].channel, batch[i].data)
+      ? await encrypt(pusher, batch[i].channel, batch[i].data)
       : ensureJSON(batch[i].data)
   }
   return pusher.post({ path: "/batch_events", body: { batch: batch } })

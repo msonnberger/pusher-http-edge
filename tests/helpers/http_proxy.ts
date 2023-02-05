@@ -1,5 +1,4 @@
 import net from "node:net"
-import url from "node:url"
 
 function handleInit(client) {
   let inBuffer = Buffer.from("")
@@ -28,7 +27,7 @@ function handleInit(client) {
         inBuffer
       )
     } else {
-      const destinationUrl = url.parse(destination)
+      const destinationUrl = new URL(destination)
       handleConnecting(
         client,
         destinationUrl.hostname,

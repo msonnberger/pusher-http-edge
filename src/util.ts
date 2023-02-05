@@ -1,4 +1,4 @@
-import crypto from "node:crypto"
+import SparkMD5 from "spark-md5"
 
 export function toOrderedArray(map: Record<string, any>) {
   return Object.keys(map)
@@ -20,7 +20,7 @@ export function toOrderedArray(map: Record<string, any>) {
 }
 
 export function getMD5(body: string) {
-  return crypto.createHash("md5").update(body, "utf8").digest("hex")
+  return SparkMD5.hash(body)
 }
 
 export function secureCompare(a: string, b: string) {

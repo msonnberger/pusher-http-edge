@@ -1,5 +1,5 @@
-import crypto from "node:crypto"
 import * as util from "./util"
+import naclUtil from "tweetnacl-util"
 
 /** Verifies and signs data against the key and secret.
  *
@@ -21,11 +21,24 @@ export default class Token {
    * @param {String} string
    * @returns {String}
    */
-  sign(string: string) {
-    return crypto
-      .createHmac("sha256", this.secret)
-      .update(Buffer.from(string))
-      .digest("hex")
+  async sign(string: string) {
+    const enc = new TextEncoder()
+    let algorithm = { name: "HMAC", hash: "SHA-256" }
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      enc.encode(this.key),
+      algorithm,
+      false,
+      ["sign", "verify"]
+    )
+    const signature = await crypto.subtle.sign(
+      algorithm.name,
+      key,
+      enc.encode(string)
+    )
+
+    return naclUtil.encodeBase64(new Uint8Array(signature))
   }
 
   /** Checks if the string has correct signature.
@@ -34,7 +47,7 @@ export default class Token {
    * @param {String} signature
    * @returns {Boolean}
    */
-  verify(string: string, signature: string) {
-    return util.secureCompare(this.sign(string), signature)
+  async verify(string: string, signature: string) {
+    return util.secureCompare(await this.sign(string), signature)
   }
 }

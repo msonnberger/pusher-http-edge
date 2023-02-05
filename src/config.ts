@@ -1,6 +1,7 @@
 import Token from "./token"
 import isBase64 from "is-base64"
 import { Options } from "./types"
+import naclUtil from "tweetnacl-util"
 
 export default class Config {
   scheme: string
@@ -10,7 +11,7 @@ export default class Config {
   token: Token
   timeout?: number
   agent: any
-  encryptionMasterKey?: Buffer
+  encryptionMasterKey?: Uint8Array
 
   constructor(options: Options) {
     options = options || {}
@@ -26,7 +27,6 @@ export default class Config {
     this.token = new Token(options.key, options.secret)
 
     this.timeout = options.timeout
-    this.agent = options.agent
 
     // Handle base64 encoded 32 byte key to encourage use of the full range of byte values
     if (options.encryptionMasterKeyBase64 !== undefined) {
@@ -37,10 +37,8 @@ export default class Config {
         throw new Error("encryptionMasterKeyBase64 must be valid base64")
       }
 
-      const decodedKey = Buffer.from(
-        options.encryptionMasterKeyBase64,
-        "base64"
-      )
+      const decodedKey = atob(options.encryptionMasterKeyBase64)
+
       if (decodedKey.length !== 32) {
         throw new Error(
           "encryptionMasterKeyBase64 must decode to 32 bytes, but the string " +
@@ -51,7 +49,9 @@ export default class Config {
         )
       }
 
-      this.encryptionMasterKey = decodedKey
+      this.encryptionMasterKey = naclUtil.decodeBase64(
+        options.encryptionMasterKeyBase64
+      )
     }
   }
 
