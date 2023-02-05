@@ -1,9 +1,9 @@
 import { expect, describe, test, beforeEach } from "vitest"
 
-import Pusher from "../../../lib/pusher.js"
+import Pusher from "../../../src/pusher"
 
 describe.skip("Pusher (integration)", function () {
-  let pusher
+  let pusher: Pusher
 
   beforeEach(function () {
     pusher = new Pusher.forURL(process.env.PUSHER_URL)

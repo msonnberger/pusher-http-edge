@@ -1,6 +1,6 @@
 import { expect, describe, test } from "vitest"
 
-import Pusher from "../../../lib/pusher.js"
+import Pusher from "../../../src/pusher"
 
 describe("Pusher", () => {
   describe(".forCluster", () => {

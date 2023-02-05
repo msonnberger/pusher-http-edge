@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@types/is-base64': ^1.1.1
   '@types/node': ^14.14.6
   '@types/node-fetch': ^2.5.7
   abort-controller: ^3.0.0
@@ -12,8 +13,10 @@ specifiers:
   nock: ^12.0.3
   node-fetch: ^2.6.1
   prettier: 2.1.2
+  rimraf: ^4.1.2
   tweetnacl: ^1.0.0
   tweetnacl-util: ^0.15.0
+  typescript: ^4.9.5
   vite: ^4.1.1
   vitest: ^0.28.4
   webpack: ^4.42.1
@@ -28,6 +31,7 @@ dependencies:
   tweetnacl-util: 0.15.1
 
 devDependencies:
+  '@types/is-base64': 1.1.1
   '@types/node': 14.18.36
   eslint: 7.32.0
   expect.js: 0.3.1
@@ -35,6 +39,8 @@ devDependencies:
   https-proxy-agent: 5.0.1
   nock: 12.0.3
   prettier: 2.1.2
+  rimraf: 4.1.2
+  typescript: 4.9.5
   vite: 4.1.1_@types+node@14.18.36
   vitest: 0.28.4
   webpack: 4.46.0_webpack-cli@3.3.12
@@ -300,6 +306,10 @@ packages:
 
   /@types/chai/4.3.4:
     resolution: {integrity: sha512-KnRanxnpfpjUTqTCXslZSEdLfXExwgNxYPdiO2WGUj8+HDjFi8R3k5RVKPeSCzLjCcshCAtVO2QBbVuAV4kTnw==}
+    dev: true
+
+  /@types/is-base64/1.1.1:
+    resolution: {integrity: sha512-JgnGhP+MeSHEQmvxcobcwPEP4Ew56voiq9/0hmP/41lyQ/3gBw/ZCIRy2v+QkEOdeCl58lRcrf6+Y6WMlJGETA==}
     dev: true
 
   /@types/node-fetch/2.6.2:
@@ -3444,6 +3454,12 @@ packages:
       glob: 7.2.3
     dev: true
 
+  /rimraf/4.1.2:
+    resolution: {integrity: sha512-BlIbgFryTbw3Dz6hyoWFhKk+unCcHMSkZGrTFVAx2WmttdBSonsdtRlwiuTbDqTKr+UlXIUqJVS4QT5tUzGENQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dev: true
+
   /ripemd160/2.0.2:
     resolution: {integrity: sha512-ii4iagi25WusVoiC4B4lq7pbXfAp3D9v5CwfkY33vffw2+pkDjY1D8GaN7spsxvCSx8dkPqOZCEZyfxcmJG2IA==}
     dependencies:
@@ -4042,6 +4058,12 @@ packages:
 
   /typedarray/0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
+    dev: true
+
+  /typescript/4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
     dev: true
 
   /ufo/1.0.1:

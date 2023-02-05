@@ -1,10 +1,10 @@
 import { expect, describe, beforeEach, afterEach, test } from "vitest"
 import nock from "nock"
 
-import Pusher from "../../../lib/pusher.js"
+import Pusher from "../../../src/pusher"
 
 describe("Pusher", () => {
-  let pusher
+  let pusher: Pusher
 
   beforeEach(() => {
     pusher = new Pusher({ appId: 999, key: "111111", secret: "tofu" })

@@ -1,11 +1,11 @@
 import { describe, expect, test, beforeEach } from "vitest"
 
-import Pusher from "../../lib/pusher.js"
-import Token from "../../lib/token.js"
-import WebHook from "../../lib/webhook.js"
+import Pusher from "../../src/pusher"
+import Token from "../../src/token"
+import WebHook from "../../src/webhook"
 
 describe("WebHook", () => {
-  let token
+  let token: Token
 
   beforeEach(() => {
     token = new Token("123456789", "tofu")

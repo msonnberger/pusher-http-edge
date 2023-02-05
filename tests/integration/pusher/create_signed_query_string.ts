@@ -1,9 +1,9 @@
 import { expect, describe, afterEach, beforeEach, test, vi } from "vitest"
 
-import Pusher from "../../../lib/pusher.js"
+import Pusher from "../../../src/pusher"
 
 describe("Pusher", () => {
-  let pusher
+  let pusher: Pusher
 
   beforeEach(() => {
     pusher = new Pusher({ appId: 1234, key: "f00d", secret: "tofu" })

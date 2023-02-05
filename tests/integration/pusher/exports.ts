@@ -1,8 +1,8 @@
 import { expect, describe, test } from "vitest"
 
-import * as errors from "../../../lib/errors.js"
-import Pusher from "../../../lib/pusher.js"
-import Token from "../../../lib/token.js"
+import * as errors from "../../../src/errors"
+import Pusher from "../../../src/pusher"
+import Token from "../../../src/token"
 
 describe("Pusher", () => {
   test("should export `Token`", () => {

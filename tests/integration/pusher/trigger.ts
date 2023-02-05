@@ -3,11 +3,10 @@ import nock from "nock"
 import nacl from "tweetnacl"
 import naclUtil from "tweetnacl-util"
 
-import Pusher from "../../../lib/pusher.js"
-import * as events from "../../../lib/events.js"
+import Pusher from "../../../src/pusher"
 
 describe("Pusher", () => {
-  let pusher
+  let pusher: Pusher
 
   beforeEach(() => {
     pusher = new Pusher({ appId: 1234, key: "f00d", secret: "tofu" })

@@ -1,7 +1,8 @@
-import Config from "./config.js"
+import Config from "./config"
+import { Options } from "./types"
 
 export default class PusherConfig extends Config {
-  constructor(options) {
+  constructor(options: Options) {
     super(options)
 
     if (options.host) {
@@ -13,7 +14,7 @@ export default class PusherConfig extends Config {
     }
   }
 
-  prefixPath(subPath) {
+  prefixPath(subPath: string) {
     return "/apps/" + this.appId + subPath
   }
 }

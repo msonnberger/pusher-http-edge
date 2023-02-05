@@ -1,6 +1,6 @@
 import crypto from "node:crypto"
 
-export function toOrderedArray(map) {
+export function toOrderedArray(map: Record<string, any>) {
   return Object.keys(map)
     .map(function (key) {
       return [key, map[key]]
@@ -19,21 +19,21 @@ export function toOrderedArray(map) {
     })
 }
 
-export function getMD5(body) {
+export function getMD5(body: string) {
   return crypto.createHash("md5").update(body, "utf8").digest("hex")
 }
 
-export function secureCompare(a, b) {
+export function secureCompare(a: string, b: string) {
   if (a.length !== b.length) {
     return false
   }
   let result = 0
-  for (const i in a) {
+  for (let i = 0; i < a.length; i++) {
     result |= a.charCodeAt(i) ^ b.charCodeAt(i)
   }
   return result === 0
 }
 
-export function isEncryptedChannel(channel) {
+export function isEncryptedChannel(channel: string) {
   return channel.startsWith("private-encrypted-")
 }

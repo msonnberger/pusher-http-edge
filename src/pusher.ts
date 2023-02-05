@@ -1,17 +1,27 @@
 import crypto from "node:crypto"
-import url from "node:url"
 
-import * as auth from "./auth.js"
-import * as errors from "./errors.js"
-import * as events from "./events.js"
-import * as requests from "./requests.js"
+import * as auth from "./auth"
+import * as errors from "./errors"
+import * as events from "./events"
+import * as requests from "./requests"
 
-import PusherConfig from "./pusher_config.js"
-import Token from "./token.js"
-import WebHook from "./webhook.js"
-import NotificationClient from "./notification_client.js"
+import PusherConfig from "./pusher_config"
+import Token from "./token"
+import WebHook from "./webhook"
 
-function validateChannel(channel) {
+import {
+  Options,
+  TriggerParams,
+  WebHookRequest,
+  UserChannelData,
+  BatchEvent,
+  PostOptions,
+  GetOptions,
+  SignedQueryStringOptions,
+} from "./types.js"
+import type { Response } from "node-fetch"
+
+function validateChannel(channel: string) {
   if (
     typeof channel !== "string" ||
     channel === "" ||
@@ -24,7 +34,7 @@ function validateChannel(channel) {
   }
 }
 
-function validateSocketId(socketId) {
+function validateSocketId(socketId: string) {
   if (
     typeof socketId !== "string" ||
     socketId === "" ||
@@ -34,13 +44,13 @@ function validateSocketId(socketId) {
   }
 }
 
-function validateUserId(userId) {
+function validateUserId(userId: string) {
   if (typeof userId !== "string" || userId === "") {
     throw new Error("Invalid user id: '" + userId + "'")
   }
 }
 
-function validateUserData(userData) {
+function validateUserData(userData: UserChannelData) {
   if (userData == null || typeof userData !== "object") {
     throw new Error("Invalid user data: '" + userData + "'")
   }
@@ -50,76 +60,60 @@ function validateUserData(userData) {
 /** Provides access to Pusher's REST API, WebHooks and authentication.
  *
  * @constructor
- * @param {Object} options
- * @param {String} [options.host="api.pusherapp.com"] API hostname
- * @param {String} [options.notification_host="api.pusherapp.com"] Notification API hostname
- * @param {Boolean} [options.useTLS=false] whether to use TLS
- * @param {Boolean} [options.encrypted=false] deprecated; renamed to `useTLS`
- * @param {Boolean} [options.notification_encrypted=false] whether to use TLS for notifications
- * @param {Integer} [options.port] port, default depends on the scheme
- * @param {Integer} options.appId application ID
- * @param {String} options.key application key
- * @param {String} options.secret application secret
- * @param {Integer} [options.timeout] request timeout in milliseconds
- * @param {Agent} [options.agent] http agent to use
+ * @param  options
+ * @param [options.host="api.pusherapp.com"] API hostname
+ * @param [options.notification_host="api.pusherapp.com"] Notification API hostname
+ * @param [options.useTLS=false] whether to use TLS
+ * @param [options.notification_encrypted=false] whether to use TLS for notifications
+ * @param [options.port] port, default depends on the scheme
+ * @param options.appId application ID
+ * @param options.key application key
+ * @param options.secret application secret
+ * @param [options.timeout] request timeout in milliseconds
+ * @param [options.agent] http agent to use
  */
 export default class Pusher {
-  constructor(options) {
+  config: PusherConfig
+
+  constructor(options: Options) {
     this.config = new PusherConfig(options)
-    const notificationOptions = Object.assign({}, options, {
-      host: options.notificationHost,
-      encrypted: options.notificationEncrypted,
-    })
-    this.notificationClient = new NotificationClient(notificationOptions)
   }
 
   /** Create a Pusher instance using a URL.
    *
    * URL should be in SCHEME://APP_KEY:SECRET_KEY@HOST:PORT/apps/APP_ID form.
-   *
-   * @param {String} pusherUrl URL containing endpoint and app details
-   * @param {Object} [options] options, see the {@link Pusher} for details
-   * @returns {Pusher} instance configured for the URL and options
    */
-  static forURL(pusherUrl, options) {
-    const apiUrl = url.parse(pusherUrl)
+  static forURL(pusherUrl: string, options: Options): Pusher {
+    const apiUrl = new URL(pusherUrl)
     const apiPath = apiUrl.pathname.split("/")
-    const apiAuth = apiUrl.auth.split(":")
 
-    return new Pusher(
-      Object.assign({}, options || {}, {
-        scheme: apiUrl.protocol.replace(/:$/, ""),
-        host: apiUrl.hostname,
-        port: parseInt(apiUrl.port, 10) || undefined,
-        appId: parseInt(apiPath[apiPath.length - 1], 10),
-        key: apiAuth[0],
-        secret: apiAuth[1],
-      })
-    )
+    return new Pusher({
+      ...options,
+      useTLS: apiUrl.protocol.replace(/:$/, "") === "https",
+      host: apiUrl.hostname,
+      port: parseInt(apiUrl.port, 10) || undefined,
+      appId: apiPath[apiPath.length - 1],
+      key: apiUrl.username,
+      secret: apiUrl.password,
+    })
   }
 
-  /** Create a Pusher instance using a cluster name.
-   *
-   * @param {String} cluster cluster name
-   * @param {Object} [options] options, see the {@link Pusher} for details
-   * @returns {Pusher} instance configured for the cluster and options
-   */
-  static forCluster(cluster, options) {
-    return new Pusher(
-      Object.assign({}, options || {}, {
-        host: "api-" + cluster + ".pusher.com",
-      })
-    )
+  /** Create a Pusher instance using a cluster name. */
+  static forCluster(cluster: string, options: Options) {
+    return new Pusher({
+      ...options,
+      host: "api-" + cluster + ".pusher.com",
+    })
   }
 
   /** Returns a signature for given socket id, channel and socket data.
    *
-   * @param {String} socketId socket id
-   * @param {String} channel channel name
-   * @param {Object} [data] additional socket data
-   * @returns {String} authorization signature
+   * @param socketId socket id
+   * @param channel channel name
+   * @param [data] additional socket data
+   * @returns authorization signature
    */
-  authorizeChannel(socketId, channel, data) {
+  authorizeChannel(socketId: string, channel: string, data?: UserChannelData) {
     validateSocketId(socketId)
     validateChannel(channel)
 
@@ -132,24 +126,13 @@ export default class Pusher {
     )
   }
 
-  /** Returns a signature for given socket id, channel and socket data.
-   *
-   *  DEPRECATED. Use authorizeChannel.
-   *
-   * @param {String} socketId socket id
-   * @param {String} channel channel name
-   * @param {Object} [data] additional socket data
-   * @returns {String} authorization signature
-   */
-  authenticate = this.authorizeChannel
-
   /** Returns a signature for given socket id and user data.
    *
-   * @param {String} socketId socket id
-   * @param {Object} userData user data
-   * @returns {String} authentication signature
+   * @param socketId socket id
+   * @param userData user data
+   * @returns authentication signature
    */
-  authenticateUser(socketId, userData) {
+  authenticateUser(socketId: string, userData: UserChannelData) {
     validateSocketId(socketId)
     validateUserData(userData)
 
@@ -160,13 +143,17 @@ export default class Pusher {
    *
    * Event name can be at most 200 characters long.
    *
-   * @param {String} userId user id
-   * @param {String} event event name
+   * @param userId user id
+   * @param event event name
    * @param data event data, objects are JSON-encoded
    * @returns {Promise} a promise resolving to a response, or rejecting to a RequestError.
    * @see RequestError
    */
-  sendToUser(userId, event, data) {
+  sendToUser(
+    userId: string,
+    event: string,
+    data: UserChannelData
+  ): Promise<Response> {
     if (event.length > 200) {
       throw new Error("Too long event name: '" + event + "'")
     }
@@ -177,11 +164,11 @@ export default class Pusher {
   /** Terminate users's connections.
    *
    *
-   * @param {String} userId user id
-   * @returns {Promise} a promise resolving to a response, or rejecting to a RequestError.
+   * @param userId user id
+   * @returns a promise resolving to a response, or rejecting to a RequestError.
    * @see RequestError
    */
-  terminateUserConnections(userId) {
+  terminateUserConnections(userId: string): Promise<Response> {
     validateUserId(userId)
     return this.post({
       path: `/users/${userId}/terminate_connections`,
@@ -198,15 +185,20 @@ export default class Pusher {
    *
    * Returns a promise resolving to a response, or rejecting to a RequestError.
    *
-   * @param {String|String[]} channel list of at most 100 channels
-   * @param {String} event event name
+   * @param channel list of at most 100 channels
+   * @param event event name
    * @param data event data, objects are JSON-encoded
-   * @param {Object} [params] additional optional request body parameters
-   * @param {String} [params.socket_id] id of a socket that should not receive the event
-   * @param {String} [params.info] a comma separate list of attributes to be returned in the response. Experimental, see https://pusher.com/docs/lab#experimental-program
+   * @param [params] additional optional request body parameters
+   * @param [params.socket_id] id of a socket that should not receive the event
+   * @param [params.info] a comma separate list of attributes to be returned in the response. Experimental, see https://pusher.com/docs/lab#experimental-program
    * @see RequestError
    */
-  trigger(channels, event, data, params) {
+  trigger(
+    channels: string | string[],
+    event: string,
+    data: any,
+    params?: TriggerParams
+  ): Promise<Response> {
     if (params && params.socket_id) {
       validateSocketId(params.socket_id)
     }
@@ -237,12 +229,8 @@ export default class Pusher {
    *   info: [optional] string experimental, see https://pusher.com/docs/lab#experimental-program
    * }
    */
-  triggerBatch(batch) {
+  triggerBatch(batch: BatchEvent[]): Promise<Response> {
     return events.triggerBatch(this, batch)
-  }
-
-  notify() {
-    this.notificationClient.notify.apply(this.notificationClient, arguments)
   }
 
   /** Makes a POST request to Pusher, handles the authentication.
@@ -255,11 +243,8 @@ export default class Pusher {
    * @param {String} options.body request body
    * @see RequestError
    */
-  post(options) {
-    return requests.send(
-      this.config,
-      Object.assign({}, options, { method: "POST" })
-    )
+  post(options: PostOptions) {
+    return requests.send(this.config, { ...options, method: "POST" })
   }
 
   /** Makes a GET request to Pusher, handles the authentication.
@@ -271,11 +256,8 @@ export default class Pusher {
    * @param {Object} options.params query params
    * @see RequestError
    */
-  get(options) {
-    return requests.send(
-      this.config,
-      Object.assign({}, options, { method: "GET" })
-    )
+  get(options: GetOptions) {
+    return requests.send(this.config, { ...options, method: "GET" })
   }
 
   /** Creates a WebHook object for a given request.
@@ -285,7 +267,7 @@ export default class Pusher {
    * @param {String} request.rawBody raw WebHook body
    * @returns {WebHook}
    */
-  webhook(request) {
+  webhook(request: WebHookRequest) {
     return new WebHook(this.config.token, request)
   }
 
@@ -298,11 +280,15 @@ export default class Pusher {
    * @param {String} options.body request body
    * @returns {String} signed query string
    */
-  createSignedQueryString(options) {
+  createSignedQueryString(options: SignedQueryStringOptions) {
     return requests.createSignedQueryString(this.config.token, options)
   }
 
-  channelSharedSecret(channel) {
+  channelSharedSecret(channel: string) {
+    if (this.config.encryptionMasterKey === undefined) {
+      throw new Error("Encryption master key is not set")
+    }
+
     return crypto
       .createHash("sha256")
       .update(

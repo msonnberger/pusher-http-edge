@@ -1,6 +1,13 @@
-import * as util from "./util.js"
+import Pusher from "./pusher"
+import Token from "./token"
+import { UserChannelData, ChannelAuthResponse } from "./types"
+import * as util from "./util"
 
-export function getSocketSignatureForUser(token, socketId, userData) {
+export function getSocketSignatureForUser(
+  token: Token,
+  socketId: string,
+  userData: UserChannelData
+) {
   const serializedUserData = JSON.stringify(userData)
   const signature = token.sign(`${socketId}::user::${serializedUserData}`)
   return {
@@ -9,8 +16,14 @@ export function getSocketSignatureForUser(token, socketId, userData) {
   }
 }
 
-export function getSocketSignature(pusher, token, channel, socketID, data) {
-  const result = {}
+export function getSocketSignature(
+  pusher: Pusher,
+  token: Token,
+  channel: string,
+  socketID: string,
+  data: any
+) {
+  const result: ChannelAuthResponse = { auth: "" }
 
   const signatureData = [socketID, channel]
   if (data) {

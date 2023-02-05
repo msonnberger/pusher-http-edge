@@ -9,7 +9,18 @@
  * @param {String} [body] response body, if received
  */
 export class RequestError extends Error {
-  constructor(message, url, error, status, body) {
+  url: string
+  error: unknown
+  status: number | undefined
+  body: string | undefined
+
+  constructor(
+    message: string,
+    url: string,
+    error: unknown,
+    status?: number,
+    body?: string
+  ) {
     super(message)
     this.name = "PusherRequestError"
 
@@ -36,7 +47,16 @@ export class RequestError extends Error {
  * @param {String} signature WebHook signature
  */
 export class WebHookError extends Error {
-  constructor(message, contentType, body, signature) {
+  contentType: string
+  body: string
+  signature: string
+
+  constructor(
+    message: string,
+    contentType: string,
+    body: string,
+    signature: string
+  ) {
     super(message)
     this.name = "PusherWebHookError"
 

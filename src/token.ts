@@ -1,5 +1,5 @@
 import crypto from "node:crypto"
-import * as util from "./util.js"
+import * as util from "./util"
 
 /** Verifies and signs data against the key and secret.
  *
@@ -8,7 +8,10 @@ import * as util from "./util.js"
  * @param {String} secret app secret
  */
 export default class Token {
-  constructor(key, secret) {
+  key: string
+  secret: string
+
+  constructor(key: string, secret: string) {
     this.key = key
     this.secret = secret
   }
@@ -18,7 +21,7 @@ export default class Token {
    * @param {String} string
    * @returns {String}
    */
-  sign(string) {
+  sign(string: string) {
     return crypto
       .createHmac("sha256", this.secret)
       .update(Buffer.from(string))
@@ -31,7 +34,7 @@ export default class Token {
    * @param {String} signature
    * @returns {Boolean}
    */
-  verify(string, signature) {
+  verify(string: string, signature: string) {
     return util.secureCompare(this.sign(string), signature)
   }
 }

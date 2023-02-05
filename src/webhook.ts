@@ -1,4 +1,6 @@
-import * as errors from "./errors.js"
+import * as errors from "./errors"
+import Token from "./token"
+import { WebHookRequest } from "./types"
 
 /** Provides validation and access methods for a WebHook.
  *
@@ -12,7 +14,14 @@ import * as errors from "./errors.js"
  * @param {String} request.rawBody raw WebHook body
  */
 export default class WebHook {
-  constructor(token, request) {
+  token: Token
+  key: string
+  signature: string
+  contentType: string
+  body: string
+  data: any
+
+  constructor(token: Token, request: WebHookRequest) {
     this.token = token
 
     this.key = request.headers["x-pusher-key"]
@@ -35,7 +44,7 @@ export default class WebHook {
    * @param {Token|Token[]} list of additional tokens to be validated against
    * @returns {Boolean}
    */
-  isValid(extraTokens) {
+  isValid(extraTokens?: Token | Token[]) {
     if (!this.isBodyValid()) {
       return false
     }

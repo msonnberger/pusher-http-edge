@@ -1,20 +1,26 @@
-import fetch from "node-fetch"
+import fetch, { Headers } from "node-fetch"
 import AbortController from "abort-controller"
 
-import * as errors from "./errors.js"
-import * as util from "./util.js"
+import * as errors from "./errors"
+import * as util from "./util"
 
-import pusherLibraryVersion from "./version.js"
+import pusherLibraryVersion from "./version"
+import PusherConfig from "./pusher_config"
+import { RequestOptions, ReservedParams } from "./types"
+import Token from "./token"
 
-const RESERVED_QUERY_KEYS = {
+const RESERVED_QUERY_KEYS: { [key: string]: boolean } = {
   auth_key: true,
   auth_timestamp: true,
   auth_version: true,
   auth_signature: true,
   body_md5: true,
-}
+} as const
 
-export function send(config, options) {
+export function send(
+  config: PusherConfig,
+  options: RequestOptions & { method: "GET" | "POST" }
+) {
   const method = options.method
   const path = config.prefixPath(options.path)
   const body = options.body ? JSON.stringify(options.body) : undefined
@@ -29,16 +35,15 @@ export function send(config, options) {
     }
   )}`
 
-  const headers = {
-    "x-pusher-library": "pusher-http-node " + pusherLibraryVersion,
-  }
+  const headers = new Headers()
+  headers.append("x-pusher-library", "pusher-http-node " + pusherLibraryVersion)
 
   if (body) {
-    headers["content-type"] = "application/json"
+    headers.append("content-type", "application/json")
   }
 
   let signal
-  let timeout
+  let timeout: NodeJS.Timeout
   if (config.timeout) {
     const controller = new AbortController()
     timeout = setTimeout(() => controller.abort(), config.timeout)
@@ -74,10 +79,10 @@ export function send(config, options) {
   )
 }
 
-export function createSignedQueryString(token, request) {
+export function createSignedQueryString(token: Token, request: any) {
   const timestamp = (Date.now() / 1000) | 0
 
-  const params = {
+  const params: Record<string, any> = {
     auth_key: token.key,
     auth_timestamp: timestamp,
     auth_version: "1.0",

@@ -1,8 +1,10 @@
-import * as util from "./util.js"
+import * as util from "./util"
 import nacl from "tweetnacl"
 import naclUtil from "tweetnacl-util"
+import Pusher from "./pusher"
+import { BatchEvent, TriggerParams } from "./types"
 
-function encrypt(pusher, channel, data) {
+function encrypt(pusher: Pusher, channel: string, data: unknown) {
   if (pusher.config.encryptionMasterKey === undefined) {
     throw new Error(
       "Set encryptionMasterKey before triggering events on encrypted channels"
@@ -23,7 +25,13 @@ function encrypt(pusher, channel, data) {
   })
 }
 
-export function trigger(pusher, channels, eventName, data, params) {
+export function trigger(
+  pusher: Pusher,
+  channels: string[],
+  eventName: string,
+  data: unknown,
+  params: TriggerParams = {}
+) {
   if (channels.length === 1 && util.isEncryptedChannel(channels[0])) {
     const channel = channels[0]
     const event = {
@@ -53,7 +61,7 @@ export function trigger(pusher, channels, eventName, data, params) {
   }
 }
 
-export function triggerBatch(pusher, batch) {
+export function triggerBatch(pusher: Pusher, batch: BatchEvent[]) {
   for (let i = 0; i < batch.length; i++) {
     batch[i].data = util.isEncryptedChannel(batch[i].channel)
       ? encrypt(pusher, batch[i].channel, batch[i].data)
@@ -62,6 +70,6 @@ export function triggerBatch(pusher, batch) {
   return pusher.post({ path: "/batch_events", body: { batch: batch } })
 }
 
-function ensureJSON(data) {
+function ensureJSON(data: string | unknown) {
   return typeof data === "string" ? data : JSON.stringify(data)
 }

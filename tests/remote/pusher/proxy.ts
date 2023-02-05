@@ -10,12 +10,12 @@ import {
 
 import HttpsProxyAgent from "https-proxy-agent"
 
-import http_proxy from "../../helpers/http_proxy.js"
-import Pusher from "../../../lib/pusher.js"
+import * as http_proxy from "../../helpers/http_proxy"
+import Pusher from "../../../src/pusher"
 
 describe.skip("Pusher (integration)", function () {
   describe("with configured proxy", function () {
-    let pusher
+    let pusher: Pusher
     let proxy
 
     beforeAll(function (done) {

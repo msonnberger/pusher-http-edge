@@ -1,9 +1,9 @@
 import { describe, expect, test, beforeEach } from "vitest"
 
-import Pusher from "../../../lib/pusher.js"
+import Pusher from "../../../src/pusher"
 
 describe("Pusher", () => {
-  let pusher
+  let pusher: Pusher
 
   beforeEach(() => {
     pusher = new Pusher({ appId: 10000, key: "aaaa", secret: "tofu" })
@@ -66,12 +66,13 @@ describe("Pusher", () => {
 
     test("should raise an exception if socket id is not a string", () => {
       expect(() => {
-        pusher.authenticateUser(undefined, { id: "123" })
+        pusher.authenticateUser(undefined!, { id: "123" })
       }).toThrowError(/^Invalid socket id: 'undefined'$/)
       expect(() => {
-        pusher.authenticateUser(null, { id: "123" })
+        pusher.authenticateUser(null!, { id: "123" })
       }).toThrowError(/^Invalid socket id: 'null'$/)
       expect(() => {
+        // @ts-expect-error
         pusher.authenticateUser(111, { id: "123" })
       }).toThrowError(/^Invalid socket id: '111'$/)
     })
@@ -99,38 +100,37 @@ describe("Pusher", () => {
 
     test("should raise an exception if user data is not a non-null object", () => {
       expect(() => {
-        pusher.authenticateUser("111.222", undefined)
+        pusher.authenticateUser("111.222", undefined!)
       }).toThrowError(/^Invalid user data: 'undefined'$/)
       expect(() => {
-        pusher.authenticateUser("111.222", null)
+        pusher.authenticateUser("111.222", null!)
       }).toThrowError(/^Invalid user data: 'null'$/)
       expect(() => {
+        // @ts-expect-error
         pusher.authenticateUser("111.222", 111)
       }).toThrowError(/^Invalid user data: '111'$/)
       expect(() => {
+        // @ts-expect-error
         pusher.authenticateUser("111.222", "")
       }).toThrowError(/^Invalid user data: ''$/)
       expect(() => {
+        // @ts-expect-error
         pusher.authenticateUser("111.222", "abc")
       }).toThrowError(/^Invalid user data: 'abc'$/)
     })
 
     test("should raise an exception if user data doesn't have a valid id field", () => {
       expect(() => {
+        // @ts-expect-error
         pusher.authenticateUser("111.222", {})
       }).toThrowError(/^Invalid user id: 'undefined'$/)
       expect(() => {
         pusher.authenticateUser("111.222", { id: "" })
       }).toThrowError(/^Invalid user id: ''$/)
       expect(() => {
+        // @ts-expect-error
         pusher.authenticateUser("111.222", { id: 123 })
       }).toThrowError(/^Invalid user id: '123'$/)
-    })
-  })
-
-  describe("#authenticate", () => {
-    test("should be the exactly the same as authorizeChannel", () => {
-      expect(pusher.authenticate).toEqual(pusher.authorizeChannel)
     })
   })
 
@@ -186,6 +186,7 @@ describe("Pusher", () => {
 
     test("should return the channel data", () => {
       expect(
+        // @ts-expect-error
         pusher.authorizeChannel("123.456", "test", { foo: "bar" }).channel_data
       ).toEqual('{"foo":"bar"}')
     })
@@ -196,6 +197,7 @@ describe("Pusher", () => {
           "aaaa:efa6cf7644a0b35cba36aa0f776f3cbf7bb60e95ea2696bde1dbe8403b61bd7c",
       })
       expect(
+        // @ts-expect-error
         pusher.authorizeChannel("123.456", "test", { foo: "bar" })
       ).toEqual({
         auth:
@@ -205,6 +207,7 @@ describe("Pusher", () => {
     })
 
     test("should return correct authentication signature with utf-8 in channel data", () => {
+      // @ts-expect-error
       expect(pusher.authorizeChannel("1.1", "test", "ą§¶™€łü€ß£")).toEqual({
         auth:
           "aaaa:2a229263e89d9c50524fd80c2e88be2843379f6931e28995e2cc214282c9db0c",
@@ -214,12 +217,15 @@ describe("Pusher", () => {
 
     test("should raise an exception if socket id is not a string", () => {
       expect(() => {
+        // @ts-expect-error
         pusher.authorizeChannel(undefined, "test")
       }).toThrowError(/^Invalid socket id: 'undefined'$/)
       expect(() => {
+        // @ts-expect-error
         pusher.authorizeChannel(null, "test")
       }).toThrowError(/^Invalid socket id: 'null'$/)
       expect(() => {
+        // @ts-expect-error
         pusher.authorizeChannel(111, "test")
       }).toThrowError(/^Invalid socket id: '111'$/)
     })
@@ -247,12 +253,15 @@ describe("Pusher", () => {
 
     test("should raise an exception if channel name is not a string", () => {
       expect(() => {
+        // @ts-expect-error
         pusher.authorizeChannel("111.222", undefined)
       }).toThrowError(/^Invalid channel name: 'undefined'$/)
       expect(() => {
+        // @ts-expect-error
         pusher.authorizeChannel("111.222", null)
       }).toThrowError(/^Invalid channel name: 'null'$/)
       expect(() => {
+        // @ts-expect-error
         pusher.authorizeChannel("111.222", 111)
       }).toThrowError(/^Invalid channel name: '111'$/)
     })
@@ -265,6 +274,7 @@ describe("Pusher", () => {
 
     test("should throw an error for private-encrypted- channels", () => {
       expect(() => {
+        // @ts-expect-error
         pusher.authorizeChannel("123.456", "private-encrypted-bla", "foo")
       }).toThrowError(
         "Cannot generate shared_secret because encryptionMasterKey is not set"
@@ -274,7 +284,7 @@ describe("Pusher", () => {
 })
 
 describe("Pusher with encryptionMasterKey", () => {
-  let pusher
+  let pusher: Pusher
 
   const testMasterKeyBase64 = "zyrm8pvV2C9fJcBfhyXzvxbJVN/H7QLmbe0xJi1GhPU="
 
@@ -290,6 +300,7 @@ describe("Pusher with encryptionMasterKey", () => {
   describe("#authorizeChannel", () => {
     test("should return a shared_secret for private-encrypted- channels", () => {
       expect(
+        // @ts-expect-error
         pusher.authorizeChannel("123.456", "private-encrypted-bla", "foo")
       ).toEqual({
         auth:
@@ -299,6 +310,7 @@ describe("Pusher with encryptionMasterKey", () => {
       })
     })
     test("should not return a shared_secret for non-encrypted channels", () => {
+      // @ts-expect-error
       expect(pusher.authorizeChannel("123.456", "bla", "foo")).toEqual({
         auth:
           "f00d:013ad3da0d88e0df6ae0a8184bef50b9c3933f2344499e6e3d1ad67fad799e20",

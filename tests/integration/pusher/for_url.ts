@@ -1,6 +1,6 @@
 import { expect, describe, test } from "vitest"
 
-import Pusher from "../../../lib/pusher.js"
+import Pusher from "../../../src/pusher"
 
 describe("Pusher", () => {
   describe(".forUrl", () => {
@@ -8,7 +8,7 @@ describe("Pusher", () => {
       const pusher = Pusher.forURL(
         "https://123abc:def456@example.org/apps/4321"
       )
-      expect(pusher.config.appId).toEqual(4321)
+      expect(pusher.config.appId).toEqual("4321")
     })
 
     test("should set the `token` attribute", () => {

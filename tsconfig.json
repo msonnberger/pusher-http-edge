@@ -1,0 +1,13 @@
+{
+  "include": ["src", "tests"],
+  "compilerOptions": {
+    "target": "es2019",
+    "outDir": "dist",
+    "declaration": true,
+    "moduleResolution": "node",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "resolveJsonModule": true
+  }
+}
