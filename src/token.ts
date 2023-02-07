@@ -1,5 +1,4 @@
 import * as util from "./util"
-import naclUtil from "tweetnacl-util"
 
 /** Verifies and signs data against the key and secret.
  *
@@ -23,22 +22,13 @@ export default class Token {
    */
   async sign(string: string) {
     const enc = new TextEncoder()
-    let algorithm = { name: "HMAC", hash: "SHA-256" }
-
-    const key = await crypto.subtle.importKey(
-      "raw",
-      enc.encode(this.key),
-      algorithm,
-      false,
-      ["sign", "verify"]
-    )
-    const signature = await crypto.subtle.sign(
-      algorithm.name,
-      key,
-      enc.encode(string)
-    )
-
-    return naclUtil.encodeBase64(new Uint8Array(signature))
+    const algorithm = { name: "HMAC", hash: "SHA-256" }
+    const key = await crypto.subtle.importKey("raw", enc.encode(this.secret), algorithm, false, [
+      "sign",
+      "verify",
+    ])
+    const signature = await crypto.subtle.sign(algorithm.name, key, enc.encode(string))
+    return util.bufToHex(signature)
   }
 
   /** Checks if the string has correct signature.

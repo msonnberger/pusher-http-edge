@@ -13,11 +13,7 @@ declare class Pusher {
     params?: Pusher.TriggerParams
   ): Promise<Response>
 
-  trigger(
-    channel: string | Array<string>,
-    event: string,
-    data: any
-  ): Promise<Response>
+  trigger(channel: string | Array<string>, event: string, data: any): Promise<Response>
 
   triggerBatch(events: Array<Pusher.BatchEvent>): Promise<Response>
 
@@ -39,10 +35,7 @@ declare class Pusher {
     data?: Pusher.PresenceChannelData
   ): Pusher.ChannelAuthResponse
 
-  authenticateUser(
-    socketId: string,
-    userData: Pusher.UserChannelData
-  ): Pusher.UserAuthResponse
+  authenticateUser(socketId: string, userData: Pusher.UserChannelData): Pusher.UserAuthResponse
 
   sendToUser(userId: string, event: string, data: any): Promise<Response>
 
@@ -54,10 +47,7 @@ declare class Pusher {
 
 declare namespace Pusher {
   export function forCluster(cluster: string, opts: BaseOptions): Pusher
-  export function forURL(
-    connectionString: string,
-    opts?: Partial<Options>
-  ): Pusher
+  export function forURL(connectionString: string, opts?: Partial<Options>): Pusher
 
   export interface BaseOptions {
     appId: string

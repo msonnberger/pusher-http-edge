@@ -1,46 +1,39 @@
-[![Build Status](https://github.com/pusher/pusher-http-node/workflows/Tests/badge.svg)](https://github.com/pusher/pusher-http-node/actions?query=workflow%3ATests+branch%3Amaster)
-[![npm version](https://badge.fury.io/js/pusher.svg)](https://badge.fury.io/js/pusher)
+## ⚠️ Disclaimer ⚠️
 
-# Pusher Channels Node.js REST library
+This is a fork of Pusher's HTTP Node.js Library, replacing Node APIs with native Web APIs available in the Edge Runtime for usage with Vercel or Netlify Edge Functions.
+
+Please be aware that it has not been tested thoroughly yet and is _not_ production ready.
+
+# Pusher Channels Edge Runtime REST library
 
 In order to use this library, you need to have an account on <https://pusher.com/channels>. After registering, you will need the application credentials for your app.
 
 ## Supported platforms
 
-This SDK supports **Node.js** version 10+.
+This SDK supports the JavaScript [Edge Runtime](https://edge-runtime.vercel.app/).
 
-We test the library against a selection of Node.js versions which we update over time. Please refer to [test.yml](https://github.com/pusher/pusher-http-node/blob/master/.github/workflows/test.yml) for the set of versions that are currently tested with CI.
-
-If you find any compatibility issues, please [raise an issue](https://github.com/pusher/pusher-http-node/issues/new) in the repository or contact support at [support@pusher.com](support@pusher.com). We will happily investigate reported problems ❤️.
+If you find any compatibility issues, please [raise an issue](https://github.com/msonnberger/pusher-http-edge/issues/new) in the repository.
 
 ## Installation
 
-You need to be running at least Node.js 10 to use this library.
-
 ```
-$ npm install pusher
+$ npm install pusher-http-edge
 ```
 
 ## Importing
 
-It's possible to use pusher-http-node with typescript or javascript.
-
-```javascript
-const Pusher = require("pusher")
-```
+It's possible to use pusher-http-edge with TypeScript or JavaScript.
 
 ```typescript
-import * as Pusher from "pusher"
+import Pusher from "pusher-http-edge"
 ```
-
-All external APIs should have types in index.d.ts.
 
 ## Configuration
 
 There are 3 ways to configure the client. First one is just using the Pusher constructor:
 
 ```javascript
-const Pusher = require("pusher")
+import Pusher from "pusher-http-edge"
 
 const pusher = new Pusher({
   appId: "APP_ID",
@@ -57,7 +50,7 @@ const pusher = new Pusher({
 For specific clusters, you can use the `forCluster` function. This is the same as using the `cluster` option in the constructor.
 
 ```javascript
-const Pusher = require("pusher")
+import Pusher from "pusher-http-edge"
 
 const pusher = Pusher.forCluster("CLUSTER", {
   appId: "APP_ID",
@@ -72,28 +65,25 @@ const pusher = Pusher.forCluster("CLUSTER", {
 You can also specify auth and endpoint options by passing an URL:
 
 ```javascript
-const Pusher = require("pusher")
+import Pusher from "pusher-http-edge"
 
-const pusher = Pusher.forURL(
-  "SCHEME://APP_KEY:SECRET_KEY@HOST:PORT/apps/APP_ID"
-)
+const pusher = Pusher.forURL("SCHEME://APP_KEY:SECRET_KEY@HOST:PORT/apps/APP_ID")
 ```
 
 You can pass the optional second argument with options, as in `forCluster` function.
 
 This is useful for example on Heroku, which sets the PUSHER_URL environment
-variable to such URL, if you have the Pusher addon installed.
+variable to such URL, if you have the Pusher Addon installed.
 
 #### Additional options
 
 There are a few additional options that can be used in all above methods:
 
 ```javascript
-const Pusher = require("pusher")
+import Pusher from "pusher-http-edge"
 
 const pusher = new Pusher({
   // you can set other options in any of the 3 ways described above
-  proxy: "HTTP_PROXY_URL", // optional, URL to proxy the requests through
   timeout: TIMEOUT, // optional, timeout for all requests in milliseconds
   keepAlive: KEEP_ALIVE, // optional, enables keep-alive, defaults to false
 })
@@ -105,13 +95,13 @@ const pusher = new Pusher({
 
 #### API requests
 
-Asynchronous methods on the `Pusher` class (`trigger`, `get` and `post`) return a promise that resolves to a [`Response`](https://github.com/node-fetch/node-fetch#class-response), or rejects with an error.
+Asynchronous methods on the `Pusher` class (`trigger`, `get` and `post`) return a promise that resolves to a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or rejects with an error.
 
-All operational errors are wrapped into a Pusher.RequestError object.
+All operational errors are wrapped into a `Pusher.RequestError` object.
 
 #### WebHooks
 
-In case accessing data for invalid WebHooks, an Pusher.WebHookError exception will be thrown from the called method. It is recommended to validate the WebHook before interpreting it.
+In case accessing data for invalid WebHooks, a `Pusher.WebHookError` exception will be thrown from the called method. It is recommended to validate the WebHook before interpreting it.
 
 ### Publishing events
 
@@ -173,9 +163,7 @@ In order to avoid the client that triggered the event from also receiving it, a 
 ```javascript
 pusher.trigger(channel, event, data, { socket_id: "1302.1081607" })
 
-pusher.triggerBatch([
-  { channel: channel, name: name, data: data, socket_id: "1302.1081607" },
-])
+pusher.triggerBatch([{ channel: channel, name: name, data: data, socket_id: "1302.1081607" }])
 ```
 
 ### Fetch subscriber and user counts at the time of publish [[EXPERIMENTAL](https://pusher.com/docs/lab#experimental-program)]
@@ -185,22 +173,21 @@ For the channels that were published to, you can request for the number of subsc
 #### Regular triggering
 
 ```javascript
-pusher
-  .trigger("presence-my-channel", "event", "test", { info: "user_count,subscription_count" })
-  .then(response => {
-    if (response.status !== 200) {
-      throw Error("unexpected status")
-    }
-    // Parse the response body as JSON
-    return response.json()
-  )
-  .then(body => {
-    const channelsInfo = body.channels
-    // Do something with channelsInfo
+try {
+  const response = await pusher.trigger("presence-my-channel", "event", "test", {
+    info: "user_count,subscription_count",
   })
-  .catch(error => {
-    // Handle error
-  })
+
+  if (response.status !== 200) {
+    throw Error("unexpected status")
+  }
+  // Parse the response body as JSON
+  const body = await response.json()
+
+  const channelsInfo = body.channels
+} catch (error) {
+  // handle errors
+}
 ```
 
 #### Batch triggering
@@ -296,7 +283,8 @@ const userData = {
   name: "John Doe",
   image: "https://...",
 }
-const auth = pusher.authenticateUser(socketId, userData)
+
+const auth = await pusher.authenticateUser(socketId, userData)
 ```
 
 The `userData` parameter must contain an `id` property with a non empty string. For more information see: <http://pusher.com/docs/authenticating_users>
@@ -308,7 +296,7 @@ In order to terminate a user's connections, the user must have been authenticate
 To terminate all connections established by a given user, you can use the `terminateUserConnections` function:
 
 ```javascript
-pusher.terminateUserConnections(userId)
+await pusher.terminateUserConnections(userId)
 ```
 
 Please note, that it only terminates the user's active connections. This means, if nothing else is done, the user will be able to reconnect. For more information see: [Terminating user connections docs](https://pusher.com/docs/channels/server_api/terminating-user-connections/).
@@ -318,7 +306,7 @@ Please note, that it only terminates the user's active connections. This means, 
 To authorise your users to access private channels on Pusher Channels, you can use the `authorizeChannel` function:
 
 ```javascript
-const auth = pusher.authorizeChannel(socketId, channel)
+const auth = await pusher.authorizeChannel(socketId, channel)
 ```
 
 For more information see: <http://pusher.com/docs/authenticating_users>
@@ -335,7 +323,7 @@ const channelData = {
     twitter_id: '@leggetter'
   }
 };
-const auth = pusher.authorizeChannel(socketId, channel, channelData);
+const auth = await pusher.authorizeChannel(socketId, channel, channelData);
 ```
 
 The `auth` is then returned to the caller as JSON.
@@ -419,8 +407,6 @@ Requests must expose following fields:
 - headers - object with request headers indexed by lowercase header names
 - rawBody - string with the WebHook request body
 
-Since neither Node.js nor express provide the body in the request, your application needs to read it and assign to the request object. See examples/webhook_endpoint.js for a simple webhook endpoint implementation using the express framework.
-
 Headers object must contain following headers:
 
 - x-pusher-key - application key, sent by Channels
@@ -438,9 +424,9 @@ Accepts an optional parameter containing additional application tokens (useful e
 ```javascript
 const webhook = pusher.webhook(request)
 // will check only the key and secret assigned to the pusher object:
-webhook.isValid()
+await webhook.isValid()
 // will also check two additional tokens:
-webhook.isValid([
+await webhook.isValid([
   { key: "x1", secret: "y1" },
   { key: "x2", secret: "y2" },
 ])
@@ -495,34 +481,6 @@ The `params` object can't contain following keys, as they are used to sign the r
 - auth_version
 - auth_signature
 - body_md5
-
-## Testing
-
-The tests run using [Mocha](http://mochajs.org/). Make sure
-you've got all required modules installed:
-
-    npm install
-
-### Running the local test suite
-
-You can run local integration tests without setting up a Pusher Channels app:
-
-    npm run local-test
-
-### Running the complete test suite
-
-In order to run the full test suite, first you need a Pusher Channels app. When starting
-mocha, you need to set the PUSHER_URL environment variable to contain your
-app credentials, like following:
-
-    PUSHER_URL='http://KEY:SECRET@api-CLUSTER.pusher.com/apps/APP_ID' npm test
-
-## Credits
-
-This library is based on the work of:
-
-- Christian Bäuerlein and his library pusher.
-- Jaewoong Kim and the node-pusher library.
 
 ## License
 

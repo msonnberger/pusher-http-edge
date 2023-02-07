@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach } from "vitest"
+import { describe, expect, test, beforeEach } from "@jest/globals"
 
 import Pusher from "../../src/pusher"
 import Token from "../../src/token"
@@ -12,12 +12,11 @@ describe("WebHook", () => {
   })
 
   describe("#isValid", () => {
-    test("should return true for a webhook with correct signature", () => {
+    test("should return true for a webhook with correct signature", async () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "123456789",
-          "x-pusher-signature":
-            "c17257e92037cd7de407ebc1ed174ceb7b2e518db127f44411b9ffc4f5b28cc5",
+          "x-pusher-signature": "c17257e92037cd7de407ebc1ed174ceb7b2e518db127f44411b9ffc4f5b28cc5",
           "content-type": "application/json",
         },
         rawBody: JSON.stringify({
@@ -25,15 +24,14 @@ describe("WebHook", () => {
           events: [{ channel: "test_channel", name: "channel_vacated" }],
         }),
       })
-      expect(webhook.isValid()).toBe(true)
+      expect(await webhook.isValid()).toBe(true)
     })
 
-    test("should return false for a webhook with incorrect key", () => {
+    test("should return false for a webhook with incorrect key", async () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "000",
-          "x-pusher-signature":
-            "df1465f5ff93f83238152fd002cb904f9562d39569e68f00a6bfa0d8ccf88334",
+          "x-pusher-signature": "df1465f5ff93f83238152fd002cb904f9562d39569e68f00a6bfa0d8ccf88334",
           "content-type": "application/json",
         },
         rawBody: JSON.stringify({
@@ -41,10 +39,10 @@ describe("WebHook", () => {
           events: [{ channel: "test_channel", name: "channel_vacated" }],
         }),
       })
-      expect(webhook.isValid()).toBe(false)
+      expect(await webhook.isValid()).toBe(false)
     })
 
-    test("should return false for a webhook with incorrect signature", () => {
+    test("should return false for a webhook with incorrect signature", async () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "123456789",
@@ -56,15 +54,14 @@ describe("WebHook", () => {
           events: [{ channel: "test_channel", name: "channel_vacated" }],
         }),
       })
-      expect(webhook.isValid()).toBe(false)
+      expect(await webhook.isValid()).toBe(false)
     })
 
-    test("should return true if webhook is signed with the extra token", () => {
+    test("should return true if webhook is signed with the extra token", async () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "1234",
-          "x-pusher-signature":
-            "c17257e92037cd7de407ebc1ed174ceb7b2e518db127f44411b9ffc4f5b28cc5",
+          "x-pusher-signature": "c17257e92037cd7de407ebc1ed174ceb7b2e518db127f44411b9ffc4f5b28cc5",
           "content-type": "application/json",
         },
         rawBody: JSON.stringify({
@@ -72,15 +69,14 @@ describe("WebHook", () => {
           events: [{ channel: "test_channel", name: "channel_vacated" }],
         }),
       })
-      expect(webhook.isValid(new Token("1234", "tofu"))).toBe(true)
+      expect(await webhook.isValid(new Token("1234", "tofu"))).toBe(true)
     })
 
-    test("should return true if webhook is signed with one of the extra tokens", () => {
+    test("should return true if webhook is signed with one of the extra tokens", async () => {
       const webhook = new WebHook(token, {
         headers: {
           "x-pusher-key": "3",
-          "x-pusher-signature":
-            "c17257e92037cd7de407ebc1ed174ceb7b2e518db127f44411b9ffc4f5b28cc5",
+          "x-pusher-signature": "c17257e92037cd7de407ebc1ed174ceb7b2e518db127f44411b9ffc4f5b28cc5",
           "content-type": "application/json",
         },
         rawBody: JSON.stringify({
@@ -89,7 +85,7 @@ describe("WebHook", () => {
         }),
       })
       expect(
-        webhook.isValid([
+        await webhook.isValid([
           new Token("1", "nope"),
           new Token("2", "not really"),
           new Token("3", "tofu"),
@@ -99,7 +95,7 @@ describe("WebHook", () => {
   })
 
   describe("#isContentTypeValid", () => {
-    test("should return true if content type is `application/json`", () => {
+    test("should return true if content type is `application/json`", async () => {
       const webhook = new WebHook(token, {
         headers: {
           "content-type": "application/json",
@@ -158,7 +154,7 @@ describe("WebHook", () => {
         headers: { "content-type": "application/json" },
         rawBody: JSON.stringify({ foo: 9 }),
       })
-      expect(webhook.getData()).to.eql({ foo: 9 })
+      expect(webhook.getData()).toEqual({ foo: 9 })
     })
 
     test("should throw an error if content type is not `application/json`", () => {
@@ -209,7 +205,7 @@ describe("WebHook", () => {
         headers: { "content-type": "application/json" },
         rawBody: JSON.stringify({ time_ms: 1403172023361 }),
       })
-      expect(webhook.getTime()).to.eql(new Date(1403172023361))
+      expect(webhook.getTime()).toEqual(new Date(1403172023361))
     })
   })
 
@@ -221,7 +217,7 @@ describe("WebHook", () => {
           events: [1, 2, 3],
         }),
       })
-      expect(webhook.getEvents()).to.eql([1, 2, 3])
+      expect(webhook.getEvents()).toEqual([1, 2, 3])
     })
   })
 })

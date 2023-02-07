@@ -1,5 +1,5 @@
 {
-  "include": ["src", "tests"],
+  "include": ["src"],
   "compilerOptions": {
     "target": "es2019",
     "outDir": "dist",
@@ -9,6 +9,7 @@
     "esModuleInterop": true,
     "strict": true,
     "resolveJsonModule": true,
-    "types": ["@edge-runtime/types"]
+    "types": ["@edge-runtime/types"],
+    "module": "ES2020"
   }
 }

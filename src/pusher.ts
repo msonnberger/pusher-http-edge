@@ -19,11 +19,7 @@ import {
 } from "./types.js"
 
 function validateChannel(channel: string) {
-  if (
-    typeof channel !== "string" ||
-    channel === "" ||
-    channel.match(/[^A-Za-z0-9_\-=@,.;]/)
-  ) {
+  if (typeof channel !== "string" || channel === "" || channel.match(/[^A-Za-z0-9_\-=@,.;]/)) {
     throw new Error("Invalid channel name: '" + channel + "'")
   }
   if (channel.length > 200) {
@@ -32,11 +28,7 @@ function validateChannel(channel: string) {
 }
 
 function validateSocketId(socketId: string) {
-  if (
-    typeof socketId !== "string" ||
-    socketId === "" ||
-    !socketId.match(/^\d+\.\d+$/)
-  ) {
+  if (typeof socketId !== "string" || socketId === "" || !socketId.match(/^\d+\.\d+$/)) {
     throw new Error("Invalid socket id: '" + socketId + "'")
   }
 }
@@ -80,7 +72,7 @@ export default class Pusher {
    *
    * URL should be in SCHEME://APP_KEY:SECRET_KEY@HOST:PORT/apps/APP_ID form.
    */
-  static forURL(pusherUrl: string, options: Options): Pusher {
+  static forURL(pusherUrl: string, options?: Options): Pusher {
     const apiUrl = new URL(pusherUrl)
     const apiPath = apiUrl.pathname.split("/")
 
@@ -110,21 +102,11 @@ export default class Pusher {
    * @param [data] additional socket data
    * @returns authorization signature
    */
-  async authorizeChannel(
-    socketId: string,
-    channel: string,
-    data?: UserChannelData
-  ) {
+  async authorizeChannel(socketId: string, channel: string, data?: UserChannelData) {
     validateSocketId(socketId)
     validateChannel(channel)
 
-    return auth.getSocketSignature(
-      this,
-      this.config.token,
-      channel,
-      socketId,
-      data
-    )
+    return auth.getSocketSignature(this, this.config.token, channel, socketId, data)
   }
 
   /** Returns a signature for given socket id and user data.
@@ -133,7 +115,7 @@ export default class Pusher {
    * @param userData user data
    * @returns authentication signature
    */
-  authenticateUser(socketId: string, userData: UserChannelData) {
+  async authenticateUser(socketId: string, userData: UserChannelData) {
     validateSocketId(socketId)
     validateUserData(userData)
 
@@ -150,7 +132,7 @@ export default class Pusher {
    * @returns {Promise} a promise resolving to a response, or rejecting to a RequestError.
    * @see RequestError
    */
-  async sendToUser(userId: string, event: string, data: UserChannelData) {
+  async sendToUser(userId: string, event: string, data: any) {
     if (event.length > 200) {
       throw new Error("Too long event name: '" + event + "'")
     }
@@ -190,12 +172,7 @@ export default class Pusher {
    * @param [params.info] a comma separate list of attributes to be returned in the response. Experimental, see https://pusher.com/docs/lab#experimental-program
    * @see RequestError
    */
-  async trigger(
-    channels: string | string[],
-    event: string,
-    data: any,
-    params?: TriggerParams
-  ) {
+  async trigger(channels: string | string[], event: string, data: any, params?: TriggerParams) {
     if (params && params.socket_id) {
       validateSocketId(params.socket_id)
     }
@@ -287,9 +264,7 @@ export default class Pusher {
     }
 
     const channelArray = new TextEncoder().encode(channel)
-    const data = new Uint8Array(
-      channelArray.length + this.config.encryptionMasterKey.length
-    )
+    const data = new Uint8Array(channelArray.length + this.config.encryptionMasterKey.length)
     data.set(channelArray)
     data.set(this.config.encryptionMasterKey, channelArray.length)
 

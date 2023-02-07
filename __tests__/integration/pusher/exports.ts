@@ -1,8 +1,7 @@
-import { expect, describe, test } from "vitest"
-
 import * as errors from "../../../src/errors"
 import Pusher from "../../../src/pusher"
 import Token from "../../../src/token"
+import { describe, test, expect } from "@jest/globals"
 
 describe("Pusher", () => {
   test("should export `Token`", () => {

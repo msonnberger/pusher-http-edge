@@ -1,22 +1,22 @@
-import { expect, describe, test, beforeEach } from "vitest"
-
 import Pusher from "../../../src/pusher"
+import { describe, test, expect, beforeEach } from "@jest/globals"
 
 describe.skip("Pusher (integration)", function () {
   let pusher: Pusher
 
   beforeEach(function () {
-    pusher = new Pusher.forURL(process.env.PUSHER_URL)
+    pusher = Pusher.forURL(process.env.PUSHER_URL ?? "")
   })
 
   describe("#trigger", function () {
     test("should return code 200", function (done) {
       pusher
+        // @ts-expect-error
         .trigger("integration", "event", "test", null)
         .then((response) => {
-          expect(response.status).to.equal(200)
+          expect(response.status).toEqual(200)
           return response.json().then((body) => {
-            expect(body).to.eql({})
+            expect(body).toEqual({})
             done()
           })
         })
@@ -40,9 +40,9 @@ describe.skip("Pusher (integration)", function () {
           },
         ])
         .then((response) => {
-          expect(response.status).to.equal(200)
+          expect(response.status).toEqual(200)
           return response.json().then((body) => {
-            expect(body).to.eql({})
+            expect(body).toEqual({})
             done()
           })
         })

@@ -49,9 +49,7 @@ export default class Config {
         )
       }
 
-      this.encryptionMasterKey = naclUtil.decodeBase64(
-        options.encryptionMasterKeyBase64
-      )
+      this.encryptionMasterKey = naclUtil.decodeBase64(options.encryptionMasterKeyBase64)
     }
   }
 

@@ -14,13 +14,7 @@ export class RequestError extends Error {
   status: number | undefined
   body: string | undefined
 
-  constructor(
-    message: string,
-    url: string,
-    error: unknown,
-    status?: number,
-    body?: string
-  ) {
+  constructor(message: string, url: string, error: unknown, status?: number, body?: string) {
     super(message)
     this.name = "PusherRequestError"
 
@@ -51,12 +45,7 @@ export class WebHookError extends Error {
   body: string
   signature: string
 
-  constructor(
-    message: string,
-    contentType: string,
-    body: string,
-    signature: string
-  ) {
+  constructor(message: string, contentType: string, body: string, signature: string) {
     super(message)
     this.name = "PusherWebHookError"
 

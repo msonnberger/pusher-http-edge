@@ -55,16 +55,18 @@ export default class WebHook {
     }
 
     const tokens = [this.token].concat(extraTokens)
-    for (const i in tokens) {
-      const token = tokens[i]
-      if (
-        this.key == token.key &&
-        (await token.verify(this.body, this.signature))
-      ) {
-        return true
-      }
+
+    if (!tokens.some((token) => token.key === this.key)) {
+      return false
     }
-    return false
+
+    const promises = tokens.map((token) => {
+      return token.verify(this.body, this.signature)
+    })
+
+    const results = await Promise.all(promises)
+
+    return results.some((result) => result)
   }
 
   /** Checks whether the WebHook content type is valid.

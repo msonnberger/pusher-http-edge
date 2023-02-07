@@ -28,12 +28,7 @@ function handleInit(client) {
       )
     } else {
       const destinationUrl = new URL(destination)
-      handleConnecting(
-        client,
-        destinationUrl.hostname,
-        destinationUrl.port || 80,
-        inBuffer
-      )
+      handleConnecting(client, destinationUrl.hostname, destinationUrl.port || 80, inBuffer)
     }
   }
 

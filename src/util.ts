@@ -37,3 +37,9 @@ export function secureCompare(a: string, b: string) {
 export function isEncryptedChannel(channel: string) {
   return channel.startsWith("private-encrypted-")
 }
+
+export function bufToHex(arrayBuffer: ArrayBuffer) {
+  return Array.prototype.map
+    .call(new Uint8Array(arrayBuffer), (n) => n.toString(16).padStart(2, "0"))
+    .join("")
+}

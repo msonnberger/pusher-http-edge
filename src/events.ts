@@ -6,9 +6,7 @@ import { BatchEvent, TriggerParams } from "./types"
 
 async function encrypt(pusher: Pusher, channel: string, data: unknown) {
   if (pusher.config.encryptionMasterKey === undefined) {
-    throw new Error(
-      "Set encryptionMasterKey before triggering events on encrypted channels"
-    )
+    throw new Error("Set encryptionMasterKey before triggering events on encrypted channels")
   }
 
   const nonceBytes = nacl.randomBytes(24)
@@ -45,9 +43,7 @@ export async function trigger(
     for (let i = 0; i < channels.length; i++) {
       if (util.isEncryptedChannel(channels[i])) {
         // For rationale, see limitations of end-to-end encryption in the README
-        throw new Error(
-          "You cannot trigger to multiple channels when using encrypted channels"
-        )
+        throw new Error("You cannot trigger to multiple channels when using encrypted channels")
       }
     }
 
@@ -57,6 +53,7 @@ export async function trigger(
       channels: channels,
       ...params,
     }
+
     return pusher.post({ path: "/events", body: event })
   }
 }

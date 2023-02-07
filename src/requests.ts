@@ -14,7 +14,7 @@ const RESERVED_QUERY_KEYS: { [key: string]: boolean } = {
   body_md5: true,
 } as const
 
-export function send(
+export async function send(
   config: PusherConfig,
   options: RequestOptions & { method: "GET" | "POST" }
 ) {
@@ -22,15 +22,12 @@ export function send(
   const path = config.prefixPath(options.path)
   const body = options.body ? JSON.stringify(options.body) : undefined
 
-  const url = `${config.getBaseURL()}${path}?${createSignedQueryString(
-    config.token,
-    {
-      method,
-      path,
-      params: options.params,
-      body: body,
-    }
-  )}`
+  const url = `${config.getBaseURL()}${path}?${await createSignedQueryString(config.token, {
+    method,
+    path,
+    params: options.params,
+    body: body,
+  })}`
 
   const headers = new Headers()
   headers.append("x-pusher-library", "pusher-http-node " + pusherLibraryVersion)
@@ -43,10 +40,7 @@ export function send(
   let timeout: number
   if (config.timeout) {
     const controller = new AbortController()
-    timeout = (setTimeout(
-      () => controller.abort(),
-      config.timeout
-    ) as unknown) as number
+    timeout = (setTimeout(() => controller.abort(), config.timeout) as unknown) as number
     signal = controller.signal
   }
 
@@ -78,10 +72,7 @@ export function send(
   )
 }
 
-export async function createSignedQueryString(
-  token: Token,
-  request: SignedQueryStringOptions
-) {
+export async function createSignedQueryString(token: Token, request: SignedQueryStringOptions) {
   const timestamp = (Date.now() / 1000) | 0
 
   const params: Record<string, any> = {
