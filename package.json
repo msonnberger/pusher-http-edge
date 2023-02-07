@@ -1,7 +1,7 @@
 {
   "name": "pusher-http-edge",
   "description": "Edge Runtime client to interact with the Pusher Channels REST API",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Martin Sonnberger <hello@msonnberger.com>",
   "type": "module",
   "dependencies": {
@@ -50,11 +50,11 @@
   "license": "MIT",
   "repository": "https://github.com/msonnberger/pusher-http-edge",
   "main": "dist/pusher.js",
+  "types": "dist/pusher.d.ts",
   "files": [
     "dist",
     "src"
   ],
-  "typings": "index.d.ts",
   "engines": {
     "pnpm": "^7.0.0"
   },
