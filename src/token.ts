@@ -1,4 +1,4 @@
-import * as util from "./util"
+import * as util from "./util.js"
 
 /** Verifies and signs data against the key and secret.
  *

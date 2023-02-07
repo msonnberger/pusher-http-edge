@@ -1,6 +1,6 @@
-import Token from "./token"
+import Token from "./token.js"
 import isBase64 from "is-base64"
-import { Options } from "./types"
+import { Options } from "./types.js"
 import naclUtil from "tweetnacl-util"
 
 export default class Config {

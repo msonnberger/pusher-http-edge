@@ -1,6 +1,6 @@
-import * as errors from "./errors"
-import Token from "./token"
-import { WebHookRequest } from "./types"
+import * as errors from "./errors.js"
+import Token from "./token.js"
+import { WebHookRequest } from "./types.js"
 
 /** Provides validation and access methods for a WebHook.
  *

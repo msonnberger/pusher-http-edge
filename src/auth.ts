@@ -1,7 +1,7 @@
-import Pusher from "./pusher"
-import Token from "./token"
-import { UserChannelData, ChannelAuthResponse } from "./types"
-import * as util from "./util"
+import Pusher from "./pusher.js"
+import Token from "./token.js"
+import { UserChannelData, ChannelAuthResponse } from "./types.js"
+import * as util from "./util.js"
 import naclUtil from "tweetnacl-util"
 
 export async function getSocketSignatureForUser(

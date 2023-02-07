@@ -1,5 +1,5 @@
-import Config from "./config"
-import { Options } from "./types"
+import Config from "./config.js"
+import { Options } from "./types.js"
 
 export default class PusherConfig extends Config {
   constructor(options: Options) {

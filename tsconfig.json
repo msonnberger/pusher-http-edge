@@ -4,12 +4,10 @@
     "target": "es2019",
     "outDir": "dist",
     "declaration": true,
-    "moduleResolution": "node",
-    "allowJs": true,
-    "esModuleInterop": true,
     "strict": true,
-    "resolveJsonModule": true,
     "types": ["@edge-runtime/types"],
-    "module": "ES2020"
+    "module": "ESNext",
+    "sourceMap": true,
+    "moduleResolution": "nodenext"
   }
 }

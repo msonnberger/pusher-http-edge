@@ -1,8 +1,8 @@
-import * as util from "./util"
+import * as util from "./util.js"
 import nacl from "tweetnacl"
 import naclUtil from "tweetnacl-util"
-import Pusher from "./pusher"
-import { BatchEvent, TriggerParams } from "./types"
+import Pusher from "./pusher.js"
+import { BatchEvent, TriggerParams } from "./types.js"
 
 async function encrypt(pusher: Pusher, channel: string, data: unknown) {
   if (pusher.config.encryptionMasterKey === undefined) {

@@ -1,10 +1,9 @@
-import * as errors from "./errors"
-import * as util from "./util"
+import * as errors from "./errors.js"
+import * as util from "./util.js"
 
-import pusherLibraryVersion from "./version"
-import PusherConfig from "./pusher_config"
-import { RequestOptions, SignedQueryStringOptions } from "./types"
-import Token from "./token"
+import PusherConfig from "./pusher_config.js"
+import { RequestOptions, SignedQueryStringOptions } from "./types.js"
+import Token from "./token.js"
 
 const RESERVED_QUERY_KEYS: { [key: string]: boolean } = {
   auth_key: true,
@@ -30,7 +29,6 @@ export async function send(
   })}`
 
   const headers = new Headers()
-  headers.append("x-pusher-library", "pusher-http-node " + pusherLibraryVersion)
 
   if (body) {
     headers.append("content-type", "application/json")
@@ -40,7 +38,7 @@ export async function send(
   let timeout: number
   if (config.timeout) {
     const controller = new AbortController()
-    timeout = (setTimeout(() => controller.abort(), config.timeout) as unknown) as number
+    timeout = setTimeout(() => controller.abort(), config.timeout) as unknown as number
     signal = controller.signal
   }
 
